@@ -1,4 +1,5 @@
 import { DashboardChrome } from "@/components/dashboard/dashboard-chrome";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardLayout({
@@ -12,8 +13,10 @@ export default async function DashboardLayout({
   } = await supabase.auth.getUser();
 
   return (
-    <DashboardChrome userEmail={user?.email || "Signed in"}>
-      {children}
-    </DashboardChrome>
+    <ToastProvider>
+      <DashboardChrome userEmail={user?.email || "Signed in"}>
+        {children}
+      </DashboardChrome>
+    </ToastProvider>
   );
 }

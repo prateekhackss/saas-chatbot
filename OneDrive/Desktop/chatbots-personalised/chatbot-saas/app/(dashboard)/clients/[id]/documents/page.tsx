@@ -10,6 +10,8 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast-provider";
 import { createClient } from "@/lib/supabase/client";
 
 type DocumentType = "faq" | "product" | "policy" | "about" | "general";
@@ -37,6 +39,7 @@ const progressMessages = [
 export default function ClientDocumentsPage() {
   const params = useParams<{ id: string }>();
   const clientId = params.id;
+  const { pushToast } = useToast();
 
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -53,6 +56,8 @@ export default function ClientDocumentsPage() {
   const [highlightedDocumentId, setHighlightedDocumentId] = useState<string | null>(
     null,
   );
+  const [documentPendingDelete, setDocumentPendingDelete] =
+    useState<DocumentRecord | null>(null);
 
   async function loadKnowledgeBase() {
     setLoadError(null);
@@ -138,11 +143,21 @@ export default function ClientDocumentsPage() {
 
     if (!trimmedTitle) {
       setFormError("Document title is required.");
+      pushToast({
+        title: "Missing document title",
+        description: "Add a title before processing the document.",
+        variant: "error",
+      });
       return;
     }
 
     if (trimmedContent.length < 10) {
       setFormError("Document content must be at least 10 characters.");
+      pushToast({
+        title: "Document content is too short",
+        description: "Add more content so the AI has enough material to train on.",
+        variant: "error",
+      });
       return;
     }
 
@@ -166,12 +181,22 @@ export default function ClientDocumentsPage() {
 
       if (!response.ok) {
         setFormError(payload.error || "Failed to process document.");
+        pushToast({
+          title: "Document processing failed",
+          description: payload.error || "Please try again in a moment.",
+          variant: "error",
+        });
         return;
       }
 
       setSuccessMessage(
         `Document processed: ${payload.chunksGenerated || 0} chunks generated.`,
       );
+      pushToast({
+        title: "Knowledge base updated",
+        description: `Document processed with ${payload.chunksGenerated || 0} generated chunks.`,
+        variant: "success",
+      });
       setTitle("");
       setDocType("general");
       setContent("");
@@ -183,26 +208,27 @@ export default function ClientDocumentsPage() {
     } catch (error) {
       console.error(error);
       setFormError("Something went wrong while processing the document.");
+      pushToast({
+        title: "Document processing failed",
+        description: "Something went wrong while processing the document.",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  async function handleDelete(documentId: string) {
-    const confirmed = window.confirm(
-      "Are you sure? This will remove all trained data from this document.",
-    );
-
-    if (!confirmed) {
+  async function confirmDeleteDocument() {
+    if (!documentPendingDelete) {
       return;
     }
 
     setFormError(null);
     setSuccessMessage(null);
-    setDeletingDocumentId(documentId);
+    setDeletingDocumentId(documentPendingDelete.id);
 
     try {
-      const response = await fetch(`/api/admin/documents/${documentId}`, {
+      const response = await fetch(`/api/admin/documents/${documentPendingDelete.id}`, {
         method: "DELETE",
       });
 
@@ -210,14 +236,30 @@ export default function ClientDocumentsPage() {
 
       if (!response.ok) {
         setFormError(payload.error || "Failed to delete document.");
+        pushToast({
+          title: "Delete failed",
+          description: payload.error || "The document could not be removed.",
+          variant: "error",
+        });
         return;
       }
 
       setSuccessMessage("Document deleted successfully.");
+      pushToast({
+        title: "Document deleted",
+        description: `"${documentPendingDelete.title}" was removed from the knowledge base.`,
+        variant: "success",
+      });
       await loadKnowledgeBase();
+      setDocumentPendingDelete(null);
     } catch (error) {
       console.error(error);
       setFormError("Something went wrong while deleting the document.");
+      pushToast({
+        title: "Delete failed",
+        description: "Something went wrong while deleting the document.",
+        variant: "error",
+      });
     } finally {
       setDeletingDocumentId(null);
     }
@@ -420,7 +462,7 @@ export default function ClientDocumentsPage() {
                     <div className="text-right">
                       <button
                         type="button"
-                        onClick={() => handleDelete(document.id)}
+                        onClick={() => setDocumentPendingDelete(document)}
                         disabled={deletingDocumentId === document.id}
                         className="inline-flex items-center gap-2 text-sm font-medium text-rose-600 transition hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
@@ -458,7 +500,7 @@ export default function ClientDocumentsPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleDelete(document.id)}
+                      onClick={() => setDocumentPendingDelete(document)}
                       disabled={deletingDocumentId === document.id}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -487,6 +529,24 @@ export default function ClientDocumentsPage() {
           </>
         )}
       </section>
+
+      <ConfirmDialog
+        open={Boolean(documentPendingDelete)}
+        title="Delete this document?"
+        description={
+          documentPendingDelete
+            ? `Are you sure? This will remove all trained data from "${documentPendingDelete.title}".`
+            : ""
+        }
+        confirmLabel="Delete Document"
+        busy={Boolean(deletingDocumentId)}
+        onCancel={() => {
+          if (!deletingDocumentId) {
+            setDocumentPendingDelete(null);
+          }
+        }}
+        onConfirm={confirmDeleteDocument}
+      />
     </div>
   );
 }

@@ -86,7 +86,7 @@ export function DashboardChrome({
     }
 
     if (pathname.startsWith("/clients/") && pathname !== "/clients") {
-      items.push({ label: "Client", href: pathname });
+      items.push({ label: "Workspace", href: pathname.split("/").slice(0, 3).join("/") });
     }
 
     if (pathname.endsWith("/documents")) {
@@ -123,7 +123,7 @@ export function DashboardChrome({
                 </button>
 
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+                  <div className="flex max-w-[72vw] items-center gap-2 overflow-x-auto whitespace-nowrap text-xs font-medium uppercase tracking-[0.2em] text-slate-400 sm:max-w-none">
                     {breadcrumbs.map((crumb, index) => (
                       <span key={`${crumb.href}-${index}`} className="flex items-center gap-2">
                         {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
@@ -151,7 +151,7 @@ export function DashboardChrome({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 px-4 py-6 pb-24 sm:px-6 sm:pb-8 lg:px-8 lg:py-8">
             {children}
           </main>
         </div>
@@ -195,6 +195,30 @@ export function DashboardChrome({
           </aside>
         </div>
       ) : null}
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = getIsActive(pathname, item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium transition ${
+                  isActive
+                    ? "bg-slate-950 text-white"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="mt-1 truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

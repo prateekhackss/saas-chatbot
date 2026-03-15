@@ -1,5 +1,22 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
+import Link from "next/link";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  MessageSquareText,
+  ShieldCheck,
+} from "lucide-react";
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+
+type ConversationRecord = {
+  id: string;
+  session_id: string;
+  created_at: string;
+  messages: Array<{ role?: string; content?: string }>;
+  resolved: boolean;
+};
 
 export default async function AnalyticsPage({
   params,
@@ -10,135 +27,272 @@ export default async function AnalyticsPage({
   const supabase = await createClient();
   const db = supabase as any;
 
-  // 1. Fetch Client
   const { data: client, error: clientError } = await db
-    .from('clients')
-    .select('id, name')
-    .eq('id', id)
+    .from("clients")
+    .select("id, name")
+    .eq("id", id)
     .single();
 
   if (clientError || !client) {
-    redirect('/clients');
+    redirect("/clients");
   }
 
-  // 2. Fetch all conversations for this client
-  // In a real production app with millions of rows, we'd paginate this
-  // or use an aggregated materialized view.
-  const { data: conversations, error: convosError } = await db
-    .from('conversations')
-    .select('*')
-    .eq('client_id', client.id)
-    .order('created_at', { ascending: false });
+  const { data: conversations, error: conversationsError } = await db
+    .from("conversations")
+    .select("*")
+    .eq("client_id", client.id)
+    .order("created_at", { ascending: false });
 
-  if (convosError) {
-    console.error('Failed to fetch analytics:', convosError);
+  if (conversationsError) {
+    console.error("Failed to fetch analytics:", conversationsError);
   }
 
-  const convos = conversations || [];
-  
-  // Calculate basic analytics
+  const convos = ((conversations || []) as ConversationRecord[]).map((conversation) => ({
+    ...conversation,
+    messages: Array.isArray(conversation.messages) ? conversation.messages : [],
+  }));
+
   const totalConversations = convos.length;
-  const totalMessages = convos.reduce((acc: number, c: any) => acc + (c.messages?.length || 0), 0);
-  const avgMessages = totalConversations > 0 ? (totalMessages / totalConversations).toFixed(1) : '0';
-  const resolvedCount = convos.filter((c: any) => c.resolved).length;
-  const resolutionRate = totalConversations > 0 ? Math.round((resolvedCount / totalConversations) * 100) : 0;
+  const totalMessages = convos.reduce(
+    (acc, conversation) => acc + conversation.messages.length,
+    0,
+  );
+  const avgMessages =
+    totalConversations > 0 ? (totalMessages / totalConversations).toFixed(1) : "0";
+  const resolvedCount = convos.filter((conversation) => conversation.resolved).length;
+  const resolutionRate =
+    totalConversations > 0
+      ? Math.round((resolvedCount / totalConversations) * 100)
+      : 0;
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics - {client.name}</h2>
-          <p className="text-muted-foreground mt-2">Overview of chatbot engagement and chat history.</p>
+    <div className="mx-auto max-w-7xl space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">
+            Conversation Analytics
+          </p>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+              {client.name} Analytics
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Review conversation volume, deflection quality, and recent chat
+              activity for this client workspace.
+            </p>
+          </div>
         </div>
+        <Link
+          href={`/clients/${client.id}`}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Client
+        </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border bg-white shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Total Conversations</h3>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{totalConversations}</div>
-            <p className="text-xs text-gray-500 mt-1">Unique chat sessions</p>
-          </div>
-        </div>
-        
-        <div className="rounded-xl border bg-white shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Total Messages</h3>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{totalMessages}</div>
-            <p className="text-xs text-gray-500 mt-1">Exchanged between users & AI</p>
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-white shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Avg. Messages / Chat</h3>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{avgMessages}</div>
-            <p className="text-xs text-gray-500 mt-1">Interaction depth</p>
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-white shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Deflection Rate</h3>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{resolutionRate}%</div>
-            <p className="text-xs text-gray-500 mt-1">Chats marked as resolved</p>
-          </div>
-        </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Total Conversations"
+          value={String(totalConversations)}
+          description="Unique customer sessions"
+          icon={<MessageSquareText className="h-5 w-5 text-sky-700" />}
+        />
+        <StatCard
+          title="Total Messages"
+          value={String(totalMessages)}
+          description="Combined user and assistant messages"
+          icon={<Clock3 className="h-5 w-5 text-slate-700" />}
+        />
+        <StatCard
+          title="Avg. Messages / Chat"
+          value={avgMessages}
+          description="Average interaction depth"
+          icon={<ShieldCheck className="h-5 w-5 text-emerald-700" />}
+        />
+        <StatCard
+          title="Resolution Rate"
+          value={`${resolutionRate}%`}
+          description="Chats marked as resolved"
+          icon={<CheckCircle2 className="h-5 w-5 text-cyan-700" />}
+        />
       </div>
 
-      {/* Chat History Table */}
-      <h3 className="text-xl font-semibold mt-10 mb-4">Recent Chat History</h3>
-      <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-        <div className="w-full overflow-auto">
-          <table className="w-full text-sm text-left border-collapse">
-             <thead className="bg-muted text-muted-foreground">
-                <tr>
-                   <th className="px-6 py-4 font-medium border-b">Session ID</th>
-                   <th className="px-6 py-4 font-medium border-b text-center">Messages</th>
-                   <th className="px-6 py-4 font-medium border-b text-center">Status</th>
-                   <th className="px-6 py-4 font-medium border-b">Date</th>
-                   <th className="px-6 py-4 font-medium border-b rounded-tr-lg">Action</th>
-                </tr>
-             </thead>
-             <tbody>
-                {convos.length === 0 ? (
-                  <tr>
-                     <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
-                        No conversations yet.
-                     </td>
-                  </tr>
-                ) : (
-                  convos.slice(0, 20).map((c: any) => (
-                    <tr key={c.id} className="border-b transition-colors hover:bg-muted/50 last:border-0">
-                       <td className="px-6 py-4 font-mono text-xs">{c.session_id.substring(0, 12)}...</td>
-                       <td className="px-6 py-4 text-center">{c.messages?.length || 0}</td>
-                       <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${c.resolved ? 'bg-black text-white' : 'bg-gray-100 text-gray-900 border-gray-200'}`}>
-                             {c.resolved ? "Resolved" : "Open"}
-                          </span>
-                       </td>
-                       <td className="px-6 py-4 text-xs text-gray-500">
-                          {new Date(c.created_at).toLocaleString()}
-                       </td>
-                       <td className="px-6 py-4 text-xs">
-                          {/* In a real app this would open a modal with the chat log JSON */}
-                          <button className="text-blue-600 hover:underline">View Transcript</button>
-                       </td>
-                    </tr>
-                  ))
-                )}
-             </tbody>
-          </table>
+      <section className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-5">
+          <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+            Recent Chat History
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            The latest customer conversations captured by the widget.
+          </p>
         </div>
-      </div>
+
+        {convos.length === 0 ? (
+          <div className="px-6 py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+              <MessageSquareText className="h-7 w-7" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
+              No conversations yet
+            </h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Once visitors start chatting with the widget, their sessions will
+              appear here.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <div className="grid min-w-[920px] grid-cols-[180px_100px_120px_170px_minmax(0,1fr)] gap-4 border-b border-slate-200 bg-slate-50/80 px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                <span>Session</span>
+                <span>Messages</span>
+                <span>Status</span>
+                <span>Date</span>
+                <span>Last User Message</span>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {convos.slice(0, 20).map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    className="grid min-w-[920px] grid-cols-[180px_100px_120px_170px_minmax(0,1fr)] items-center gap-4 px-6 py-5 transition hover:bg-slate-50/80"
+                  >
+                    <div className="font-mono text-xs text-slate-500">
+                      {conversation.session_id.slice(0, 16)}...
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900">
+                      {conversation.messages.length}
+                    </div>
+                    <StatusPill resolved={conversation.resolved} />
+                    <div className="text-sm text-slate-500">
+                      {new Date(conversation.created_at).toLocaleString()}
+                    </div>
+                    <div className="truncate text-sm text-slate-600">
+                      {getLatestUserMessage(conversation.messages)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 p-4 lg:hidden">
+              {convos.slice(0, 20).map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className="rounded-[1.5rem] border border-slate-200 bg-white p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Session
+                      </div>
+                      <div className="mt-2 truncate font-mono text-xs text-slate-500">
+                        {conversation.session_id}
+                      </div>
+                    </div>
+                    <StatusPill resolved={conversation.resolved} />
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <SummaryTile
+                      label="Messages"
+                      value={String(conversation.messages.length)}
+                    />
+                    <SummaryTile
+                      label="Date"
+                      value={formatShortDate(conversation.created_at)}
+                    />
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
+                      Last User Message
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                      {getLatestUserMessage(conversation.messages)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
+}
+
+function StatCard({
+  title,
+  value,
+  description,
+  icon,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-slate-500">{title}</div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100">
+          {icon}
+        </div>
+      </div>
+      <div className="mt-5 text-3xl font-semibold tracking-tight text-slate-950">
+        {value}
+      </div>
+      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    </div>
+  );
+}
+
+function StatusPill({ resolved }: { resolved: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-xs font-semibold ${
+        resolved
+          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+          : "border-slate-200 bg-slate-100 text-slate-600"
+      }`}
+    >
+      {resolved ? "Resolved" : "Open"}
+    </span>
+  );
+}
+
+function SummaryTile({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
+      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
+        {label}
+      </div>
+      <div className="mt-2 text-sm font-semibold text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+function getLatestUserMessage(
+  messages: Array<{ role?: string; content?: string }>,
+) {
+  const latestUserMessage = [...messages]
+    .reverse()
+    .find((message) => message.role === "user" && message.content?.trim());
+
+  return latestUserMessage?.content || "No recent user message captured.";
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(value));
 }

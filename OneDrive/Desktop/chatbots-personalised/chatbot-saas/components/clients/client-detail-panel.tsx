@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 
+import { useToast } from "@/components/ui/toast-provider";
 import type { ClientConfig } from "@/types/database";
 
 type ClientRecord = {
@@ -49,6 +50,7 @@ export function ClientDetailPanel({
   hostUrl,
 }: ClientDetailPanelProps) {
   const router = useRouter();
+  const { pushToast } = useToast();
   const [clientState, setClientState] = useState(client);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -115,10 +117,20 @@ export function ClientDetailPanel({
     try {
       await navigator.clipboard.writeText(embedCode);
       setCopied(true);
+      pushToast({
+        title: "Embed code copied",
+        description: "The widget snippet is ready to paste into the client website.",
+        variant: "success",
+      });
       window.setTimeout(() => setCopied(false), 1800);
     } catch (copyError) {
       console.error(copyError);
       setError("Unable to copy the embed code right now.");
+      pushToast({
+        title: "Copy failed",
+        description: "Could not copy the embed code from this browser.",
+        variant: "error",
+      });
     }
   }
 
@@ -138,21 +150,41 @@ export function ClientDetailPanel({
 
     if (!trimmedName) {
       setError("Client name is required.");
+      pushToast({
+        title: "Missing client name",
+        description: "Add a client name before saving the configuration.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedBrandName) {
       setError("Brand name is required.");
+      pushToast({
+        title: "Missing brand name",
+        description: "Set the customer-facing brand name before saving.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedSlug) {
       setError("Slug is required.");
+      pushToast({
+        title: "Missing URL slug",
+        description: "The widget needs a valid slug for its public URL.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedWelcomeMessage || !trimmedTone || !trimmedFallbackMessage) {
       setError("Welcome message, tone, and fallback message are required.");
+      pushToast({
+        title: "Complete the bot behavior",
+        description: "Welcome message, tone, and fallback copy are required.",
+        variant: "error",
+      });
       return;
     }
 
@@ -186,8 +218,18 @@ export function ClientDetailPanel({
       if (!response.ok) {
         if (response.status === 409) {
           setError("That slug already exists. Please choose a different one.");
+          pushToast({
+            title: "Slug already exists",
+            description: "Choose a different public slug for this widget.",
+            variant: "error",
+          });
         } else {
           setError(payload.error || "Failed to update client.");
+          pushToast({
+            title: "Update failed",
+            description: payload.error || "Please try again in a moment.",
+            variant: "error",
+          });
         }
         return;
       }
@@ -206,11 +248,21 @@ export function ClientDetailPanel({
       setLogoUrl(nextClient.config.logoUrl || "");
       setSuggestedQuestions(nextClient.config.suggestedQuestions || []);
       setSuccessMessage("Client configuration updated.");
+      pushToast({
+        title: "Client updated",
+        description: "The configuration and preview have been refreshed.",
+        variant: "success",
+      });
       setIsEditing(false);
       router.refresh();
     } catch (saveError) {
       console.error(saveError);
       setError("Something went wrong while updating the client.");
+      pushToast({
+        title: "Update failed",
+        description: "Something went wrong while updating the client.",
+        variant: "error",
+      });
     } finally {
       setIsSaving(false);
     }

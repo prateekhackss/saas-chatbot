@@ -5,12 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
+  Check,
   CheckCircle2,
+  Copy,
   Loader2,
   Plus,
   Sparkles,
   X,
 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 const DEFAULT_WELCOME_MESSAGE = "Hi there! How can I help you today?";
 const DEFAULT_FALLBACK_MESSAGE =
@@ -27,6 +30,7 @@ function slugify(value: string) {
 
 export default function NewClientPage() {
   const router = useRouter();
+  const { pushToast } = useToast();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -47,8 +51,8 @@ export default function NewClientPage() {
   ]);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!slugManuallyEdited) {
@@ -80,7 +84,6 @@ export default function NewClientPage() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
     const trimmedName = name.trim();
     const trimmedBrandName = brandName.trim();
@@ -94,21 +97,41 @@ export default function NewClientPage() {
 
     if (!trimmedName) {
       setError("Client name is required.");
+      pushToast({
+        title: "Missing client name",
+        description: "Add a client name before creating the workspace.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedBrandName) {
       setError("Brand name is required.");
+      pushToast({
+        title: "Missing brand name",
+        description: "Set the customer-facing brand name first.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedSlug) {
       setError("Slug is required.");
+      pushToast({
+        title: "Missing URL slug",
+        description: "The widget needs a valid slug for its public URL.",
+        variant: "error",
+      });
       return;
     }
 
     if (!trimmedWelcomeMessage || !trimmedTone || !trimmedFallbackMessage) {
       setError("Welcome message, tone, and fallback message are required.");
+      pushToast({
+        title: "Complete the bot behavior",
+        description: "Welcome message, tone, and fallback copy are all required.",
+        variant: "error",
+      });
       return;
     }
 
@@ -142,20 +165,59 @@ export default function NewClientPage() {
       if (!response.ok) {
         if (response.status === 409) {
           setError("That slug already exists. Please choose a different one.");
+          pushToast({
+            title: "Slug already exists",
+            description: "Choose a different public slug for this client widget.",
+            variant: "error",
+          });
         } else {
           setError(payload.error || "Failed to create client.");
+          pushToast({
+            title: "Client creation failed",
+            description: payload.error || "Please try again in a moment.",
+            variant: "error",
+          });
         }
         return;
       }
 
-      setSuccessMessage("Client created successfully. Redirecting...");
+      pushToast({
+        title: "Client created",
+        description: "Redirecting you to the new client workspace.",
+        variant: "success",
+      });
       router.push(`/clients/${payload.id}`);
       router.refresh();
     } catch (submitError) {
       console.error(submitError);
       setError("Something went wrong while creating the client.");
+      pushToast({
+        title: "Client creation failed",
+        description: "Something went wrong while creating the client.",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleCopyEmbedCode() {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      setCopied(true);
+      pushToast({
+        title: "Embed code copied",
+        description: "The script snippet is ready to paste into a client site.",
+        variant: "success",
+      });
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch (copyError) {
+      console.error(copyError);
+      pushToast({
+        title: "Copy failed",
+        description: "Could not copy the embed code from this browser.",
+        variant: "error",
+      });
     }
   }
 
@@ -409,30 +471,32 @@ export default function NewClientPage() {
           </section>
 
           <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Embed Code Preview"
-              description="This is the script snippet clients will paste into their site."
-            />
+            <div className="flex items-start justify-between gap-4">
+              <SectionHeader
+                title="Embed Code Preview"
+                description="This is the script snippet clients will paste into their site."
+              />
+              <button
+                type="button"
+                onClick={handleCopyEmbedCode}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
             <pre className="mt-6 overflow-x-auto rounded-[1.25rem] bg-slate-950 p-4 text-xs leading-6 text-slate-100">
               {embedCode}
             </pre>
           </section>
 
-          {(error || successMessage) && (
+          {error && (
             <div
-              className={`rounded-[1.5rem] border p-4 text-sm ${
-                error
-                  ? "border-rose-200 bg-rose-50 text-rose-700"
-                  : "border-emerald-200 bg-emerald-50 text-emerald-700"
-              }`}
+              className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
             >
               <div className="flex items-start gap-3">
-                {error ? (
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                ) : (
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                )}
-                <p>{error || successMessage}</p>
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>{error}</p>
               </div>
             </div>
           )}
