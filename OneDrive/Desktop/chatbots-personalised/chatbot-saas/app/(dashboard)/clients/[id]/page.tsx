@@ -3,15 +3,20 @@ import { redirect } from 'next/navigation';
 import { Copy, Bot, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function ClientDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+export default async function ClientDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
   const db = supabase as any;
 
   // 1. Fetch Client Data
   const { data: client, error } = await db
     .from('clients')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !client) {

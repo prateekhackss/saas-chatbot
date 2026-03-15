@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRelevantContext, buildSystemPrompt } from '@/lib/ai/rag';
-import { streamChatResponse } from '@/lib/ai/groq';
+import { streamChatResponse, type ChatHistoryMessage } from '@/lib/ai/groq';
 import { ClientConfig } from '@/types/database';
 
 // Opt out of caching; this must be dynamic for real-time chat
@@ -15,7 +15,7 @@ const WINDOW_MS = 60 * 1000; // 1 minute window
 export async function POST(req: NextRequest) {
   try {
     // 1. Basic Rate Limiting Check
-    const ip = req.headers.get('x-forwarded-for') || req.ip || '127.0.0.1';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
     const now = Date.now();
     const windowStart = now - WINDOW_MS;
     
@@ -41,9 +41,28 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { clientSlug, sessionId, history, message } = body;
+    const { clientSlug, sessionId, history, message, messages } = body;
+    const normalizedSdkMessages = normalizeMessages(messages);
+    const normalizedHistory = normalizeMessages(history);
 
-    if (!clientSlug || !sessionId || !message) {
+    let latestUserMessage =
+      typeof message === 'string' && message.trim().length > 0
+        ? message.trim()
+        : '';
+    let safeHistory: ChatHistoryMessage[] = normalizedHistory;
+
+    if (!latestUserMessage && normalizedSdkMessages.length > 0) {
+      const lastMessage = normalizedSdkMessages[normalizedSdkMessages.length - 1];
+
+      if (lastMessage.role === 'user') {
+        latestUserMessage = lastMessage.content;
+        safeHistory = normalizedSdkMessages.slice(0, -1);
+      } else {
+        safeHistory = normalizedSdkMessages;
+      }
+    }
+
+    if (!clientSlug || !sessionId || !latestUserMessage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -69,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     // 2. RAG Phase 1: Retrieval
     // Get the most relevant chunks based on the user's current message
-    const relevantChunks = await getRelevantContext(clientId, message);
+    const relevantChunks = await getRelevantContext(clientId, latestUserMessage);
 
     // 3. RAG Phase 2: Augmentation
     // Build the strict instructional prompt with the injected chunks
@@ -77,17 +96,16 @@ export async function POST(req: NextRequest) {
 
     // 4. Record the user's message asynchronously to prevent blocking the stream
     // We update the JSONB 'messages' array and increment the count
-    const safeHistory = history || [];
     const newMessages = [
       ...safeHistory,
-      { role: 'user', content: message, timestamp: new Date().toISOString() }
+      { role: 'user', content: latestUserMessage, timestamp: new Date().toISOString() }
     ];
 
     saveConversationAsync(supabase, clientId, sessionId, newMessages);
 
     // 5. RAG Phase 3: Generation (Streaming)
     // Send to Groq Llama 3.3 and immediately stream the response back
-    const result = await streamChatResponse(systemPrompt, safeHistory, message, async (text: string) => {
+    const result = await streamChatResponse(systemPrompt, safeHistory, latestUserMessage, async (text: string) => {
         // onFinish handler
         const finalMessages = [
            ...newMessages,
@@ -103,6 +121,36 @@ export async function POST(req: NextRequest) {
     console.error('Chat API Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+
+function normalizeMessages(input: unknown): ChatHistoryMessage[] {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((entry) => {
+      if (!entry || typeof entry !== 'object') {
+        return null;
+      }
+
+      const role = 'role' in entry ? entry.role : undefined;
+      const content = 'content' in entry ? entry.content : undefined;
+
+      if (
+        (role === 'user' || role === 'assistant' || role === 'system') &&
+        typeof content === 'string' &&
+        content.trim().length > 0
+      ) {
+        return {
+          role,
+          content: content.trim(),
+        };
+      }
+
+      return null;
+    })
+    .filter((entry): entry is ChatHistoryMessage => entry !== null);
 }
 
 /**
@@ -142,4 +190,3 @@ async function saveConversationAsync(supabase: any, clientId: string, sessionId:
       });
   }
 }
-

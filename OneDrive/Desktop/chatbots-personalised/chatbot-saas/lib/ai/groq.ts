@@ -1,5 +1,10 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { streamText, UIMessage } from 'ai';
+import { streamText } from 'ai';
+
+export type ChatHistoryMessage = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+};
 
 // Initialize Groq via the OpenAI compatible endpoint in the Vercel AI SDK
 // As specified: "Use Vercel AI SDK's createOpenAI with Groq's base URL"
@@ -17,7 +22,7 @@ const groq = createOpenAI({
  */
 export async function streamChatResponse(
   systemPrompt: string,
-  history: Omit<UIMessage, 'id'>[],
+  history: ChatHistoryMessage[],
   userMessage: string,
   onFinish?: (text: string) => Promise<void>
 ) {

@@ -24,7 +24,7 @@ export async function getRelevantContext(clientId: string, userMessage: string):
 
   // 2. Query Supabase for similar chunks
   // We must use the admin client here because the public API shouldn't have direct DB read access to chunks
-  const supabase = createAdminClient();
+  const supabase = createAdminClient() as any;
 
   const { data: chunks, error } = await supabase.rpc('match_chunks', {
     query_embedding: queryEmbedding,
@@ -39,7 +39,13 @@ export async function getRelevantContext(clientId: string, userMessage: string):
   }
 
   // 3. Return the chunks mapping them carefully
-  return (chunks || []).map(chunk => ({
+  const rawChunks = (chunks || []) as Array<{
+    content: string;
+    similarity: number;
+    metadata: unknown;
+  }>;
+
+  return rawChunks.map((chunk) => ({
     content: chunk.content,
     similarity: chunk.similarity,
     metadata: chunk.metadata as any

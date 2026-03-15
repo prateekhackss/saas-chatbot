@@ -11,11 +11,11 @@ const WINDOW_MS = 60 * 1000; // 1 minute window
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     // 1. Basic Rate Limiting Check
-    const ip = req.headers.get('x-forwarded-for') || req.ip || '127.0.0.1';
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
     const now = Date.now();
     const windowStart = now - WINDOW_MS;
     
@@ -40,14 +40,14 @@ export async function GET(
        return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 });
     }
 
-    const slug = params.slug;
+    const { slug } = await params;
     
     if (!slug) {
       return NextResponse.json({ error: 'Missing client slug' }, { status: 400 });
     }
 
     // Use standard client. Our RLS policies allow public SELECT on active client configs.
-    const supabase = createClient();
+    const supabase = await createClient();
     const db = supabase as any;
 
     const { data: client, error } = await db

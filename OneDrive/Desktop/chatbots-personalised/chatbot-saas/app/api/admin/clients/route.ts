@@ -20,7 +20,8 @@ const clientSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
+    const db = supabase as any;
     
     // 1. Verify admin authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
     
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Invalid payload', details: result.error.errors }, 
+        { error: 'Invalid payload', details: result.error.issues }, 
         { status: 400 }
       );
     }
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     // 3. Insert into Supabase
     // We use the server client here because RLS will allow "authenticated" users (Admin) to insert
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('clients')
       .insert({
         name,
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
+    const db = supabase as any;
     
     // 1. Verify admin authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -80,7 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Fetch all clients
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('clients')
       .select('id, name, slug, is_active, created_at')
       .order('created_at', { ascending: false });

@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
+    const db = supabase as any;
     
     // 1. Verify admin authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     dateLimit.setDate(dateLimit.getDate() - days);
 
     // 2. Fetch conversations
-    const { data: conversations, error } = await supabase
+    const { data: conversations, error } = await db
       .from('conversations')
       .select('id, message_count, resolved, messages, created_at')
       .eq('client_id', clientId)
@@ -47,7 +48,13 @@ export async function GET(req: NextRequest) {
     // but doing it in-memory here works perfectly for our SaaS scale.
     const questionCounts = new Map<string, number>();
 
-    for (const conv of conversations || []) {
+    const conversationRows = (conversations || []) as Array<{
+      message_count?: number;
+      messages?: any[];
+      created_at: string;
+    }>;
+
+    for (const conv of conversationRows) {
       totalMessages += (conv.message_count || 0);
 
       // Track daily volume
@@ -82,7 +89,7 @@ export async function GET(req: NextRequest) {
        .map(([date, count]) => ({ date, conversations: count }));
 
     // Determine the averages safely
-    const totalConversations = conversations?.length || 0;
+    const totalConversations = conversationRows.length;
     const avgMessagesPerConversation = totalConversations > 0 
       ? Number((totalMessages / totalConversations).toFixed(1)) 
       : 0;

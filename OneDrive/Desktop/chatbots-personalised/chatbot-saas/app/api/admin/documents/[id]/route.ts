@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // 1. Verify admin authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -14,7 +14,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const documentId = params.id;
+    const { id: documentId } = await params;
 
     if (!documentId) {
        return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });

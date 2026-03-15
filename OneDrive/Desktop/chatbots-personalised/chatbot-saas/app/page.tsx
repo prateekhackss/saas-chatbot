@@ -17,10 +17,10 @@ export default function LandingPage() {
             <Link href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link href="/dashboard/clients" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
               Sign In
             </Link>
-            <Link href="/dashboard/clients" className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700">
+            <Link href="/clients" className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700">
               Get Started
             </Link>
           </div>
@@ -51,7 +51,7 @@ export default function LandingPage() {
               Upload your documents, website links, or PDFs. We generate a custom ChatGPT-like widget you can embed onto your website in seconds. No coding required.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/dashboard/clients/new" className="inline-flex h-12 items-center justify-center rounded-lg bg-blue-600 px-8 text-sm font-medium text-white shadow-xl shadow-blue-200 transition-colors hover:bg-blue-700 hover:-translate-y-0.5 transform duration-200 w-full sm:w-auto">
+              <Link href="/clients/new" className="inline-flex h-12 items-center justify-center rounded-lg bg-blue-600 px-8 text-sm font-medium text-white shadow-xl shadow-blue-200 transition-colors hover:bg-blue-700 hover:-translate-y-0.5 transform duration-200 w-full sm:w-auto">
                 Build Your Chatbot <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link href="#demo" className="inline-flex h-12 items-center justify-center rounded-lg border border-slate-200 bg-white px-8 text-sm font-medium text-slate-900 shadow-sm transition-colors hover:bg-slate-50 hover:-translate-y-0.5 transform duration-200 w-full sm:w-auto">
@@ -125,7 +125,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/dashboard/clients/new" className="mt-8 block w-full rounded-lg border-2 border-slate-200 bg-white px-6 py-3 text-center font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50">
+                <Link href="/clients/new" className="mt-8 block w-full rounded-lg border-2 border-slate-200 bg-white px-6 py-3 text-center font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-slate-50">
                   Get Started Free
                 </Link>
               </div>
@@ -147,7 +147,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/dashboard/clients/new" className="mt-8 block w-full rounded-lg bg-blue-600 px-6 py-3 text-center font-medium text-white transition-colors hover:bg-blue-500 shadow-lg shadow-blue-900/50">
+                <Link href="/clients/new" className="mt-8 block w-full rounded-lg bg-blue-600 px-6 py-3 text-center font-medium text-white transition-colors hover:bg-blue-500 shadow-lg shadow-blue-900/50">
                   Upgrade to Growth
                 </Link>
               </div>
