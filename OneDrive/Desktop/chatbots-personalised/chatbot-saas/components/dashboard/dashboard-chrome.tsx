@@ -173,7 +173,7 @@ export function DashboardChrome({
                 </div>
                 <div>
                   <div className="text-sm font-semibold tracking-tight">
-                    ChatbaseClone
+                    NexusChat
                   </div>
                   <div className="text-xs text-slate-400">Admin workspace</div>
                 </div>
@@ -217,7 +217,7 @@ function SidebarContent({
           </div>
           <div>
             <div className="text-sm font-semibold tracking-tight text-white">
-              ChatbaseClone
+              NexusChat
             </div>
             <div className="text-xs text-slate-400">Operations Console</div>
           </div>

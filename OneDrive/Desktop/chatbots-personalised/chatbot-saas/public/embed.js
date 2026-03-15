@@ -1,7 +1,7 @@
 (function() {
   // Prevent multiple initializations if script is included twice
-  if (window.ChatbaseCloneInitialized) return;
-  window.ChatbaseCloneInitialized = true;
+  if (window.NexusChatInitialized) return;
+  window.NexusChatInitialized = true;
 
   // 1. Find the script tag to extract data-client
   const scriptTags = document.getElementsByTagName('script');
@@ -19,12 +19,12 @@
   }
 
   // Fallback if data-client is missing but configured globally
-  if (!clientSlug && window.ChatbaseCloneConfig?.client) {
-    clientSlug = window.ChatbaseCloneConfig.client;
+  if (!clientSlug && window.NexusChatConfig?.client) {
+    clientSlug = window.NexusChatConfig.client;
   }
 
   if (!clientSlug) {
-    console.error('ChatbaseClone Embed: Missing data-client attribute on script tag.');
+    console.error('NexusChat Embed: Missing data-client attribute on script tag.');
     return;
   }
 
@@ -41,7 +41,7 @@
       // Fetch visual branding config so we can color the floating button correctly
       const res = await fetch(`${hostUrl}/api/embed/${clientSlug}`);
       if (!res.ok) {
-        console.error('ChatbaseClone Embed: Failed to load widget configuration.');
+        console.error('NexusChat Embed: Failed to load widget configuration.');
         return;
       }
       const data = await res.json();
@@ -49,7 +49,7 @@
       
       render();
     } catch (err) {
-      console.error('ChatbaseClone Embed Error:', err);
+      console.error('NexusChat Embed Error:', err);
     }
   }
 
@@ -60,7 +60,7 @@
     
     // Create master container
     container = document.createElement('div');
-    container.id = 'chatbase-clone-widget-container';
+    container.id = 'nexuschat-widget-container';
     
     const positionStyles = position === 'bottom-left' 
       ? 'bottom: 24px; left: 24px;' 
@@ -80,7 +80,7 @@
     const styleSheet = document.createElement('style');
     styleSheet.textContent = `
       @media (max-width: 640px) {
-        #chatbase-clone-widget-container {
+        #nexuschat-widget-container {
           bottom: 0 !important;
           right: 0 !important;
           left: 0 !important;
@@ -88,7 +88,7 @@
           height: 0 !important; /* Let children dictate height naturally or full screen when open */
           align-items: stretch !important;
         }
-        #chatbase-clone-widget-iframe-container {
+        #nexuschat-widget-iframe-container {
           width: 100% !important;
           max-width: 100% !important;
           height: 100dvh !important;
@@ -97,12 +97,12 @@
           margin-bottom: 0 !important;
           border: none !important;
         }
-        #chatbase-clone-widget-button {
+        #nexuschat-widget-button {
           position: fixed !important;
           bottom: 20px !important;
           right: 20px !important;
         }
-        .chatbase-clone-widget-open #chatbase-clone-widget-button {
+        .nexuschat-widget-open #nexuschat-widget-button {
           display: none !important; /* Hide button on mobile when chat is open */
         }
       }
@@ -111,7 +111,7 @@
 
     // Create iframe container (hidden by default)
     iframeContainer = document.createElement('div');
-    iframeContainer.id = 'chatbase-clone-widget-iframe-container';
+    iframeContainer.id = 'nexuschat-widget-iframe-container';
     iframeContainer.style.cssText = `
       width: 100vw;
       height: 100dvh;
@@ -144,7 +144,7 @@
 
     // Create floating action button
     button = document.createElement('button');
-    button.id = 'chatbase-clone-widget-button';
+    button.id = 'nexuschat-widget-button';
     button.ariaLabel = "Open Chat";
     button.style.cssText = `
       width: 60px;
@@ -187,7 +187,7 @@
       isOpen = !isOpen;
       if (isOpen) {
         // OPENING
-        container.classList.add('chatbase-clone-widget-open');
+        container.classList.add('nexuschat-widget-open');
         iframeContainer.style.display = 'block';
         
         // Timeout ensures the display:block has rendered before animating opacity/transform
@@ -206,7 +206,7 @@
         
       } else {
         // CLOSING
-        container.classList.remove('chatbase-clone-widget-open');
+        container.classList.remove('nexuschat-widget-open');
         iframeContainer.style.opacity = '0';
         iframeContainer.style.transform = 'translateY(20px) scale(0.95)';
         iframeContainer.style.pointerEvents = 'none';

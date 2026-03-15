@@ -16,7 +16,7 @@ export default function LoginPage() {
           <div className="relative">
             <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100">
               <Bot className="h-4 w-4 text-sky-300" />
-              ChatbaseClone
+              NexusChat
             </div>
             <div className="mt-16 max-w-md space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-sky-200">
@@ -51,7 +51,7 @@ export default function LoginPage() {
             <div className="mb-8 space-y-4">
               <div className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm lg:hidden">
                 <Bot className="h-4 w-4 text-sky-600" />
-                ChatbaseClone
+                NexusChat
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">

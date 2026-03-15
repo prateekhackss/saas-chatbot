@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 body {
@@ -15,6 +15,10 @@ body {
 }
 
 @layer utilities {
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
   .text-balance {
     text-wrap: balance;
   }
