@@ -26,8 +26,23 @@ function isProtectedPath(pathname: string) {
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (pathname !== "/login" && isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    if (isProtectedPath(pathname)) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      loginUrl.search = "";
+      loginUrl.searchParams.set("authError", "missing_env");
+      loginUrl.searchParams.set("next", `${pathname}${search}`);
+      return NextResponse.redirect(loginUrl);
+    }
+
     return NextResponse.next();
   }
 
@@ -36,8 +51,8 @@ export async function middleware(request: NextRequest) {
   });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
