@@ -11,6 +11,7 @@ export function SignupForm() {
   const isAuthConfigured =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export function SignupForm() {
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
-        : `${window.location.origin}/login?signup=confirmed`;
+        : `${configuredAppUrl || window.location.origin}/auth/callback?next=/clients`;
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -86,12 +87,12 @@ export function SignupForm() {
       <div className="space-y-2">
         <label
           htmlFor="email"
-          className="text-sm font-medium tracking-tight text-slate-700"
+          className="text-sm font-medium tracking-tight text-stone-700"
         >
           Work email
         </label>
         <div className="relative">
-          <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -transtone-y-1/2 text-stone-400" />
           <input
             id="email"
             type="email"
@@ -100,7 +101,7 @@ export function SignupForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@company.com"
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+            className="h-12 w-full rounded-2xl border border-stone-200 bg-white pl-11 pr-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
           />
         </div>
       </div>
@@ -108,12 +109,12 @@ export function SignupForm() {
       <div className="space-y-2">
         <label
           htmlFor="password"
-          className="text-sm font-medium tracking-tight text-slate-700"
+          className="text-sm font-medium tracking-tight text-stone-700"
         >
           Password
         </label>
         <div className="relative">
-          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -transtone-y-1/2 text-stone-400" />
           <input
             id="password"
             type="password"
@@ -123,10 +124,10 @@ export function SignupForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Create a password"
-            className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+            className="h-12 w-full rounded-2xl border border-stone-200 bg-white pl-11 pr-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
           />
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-stone-500">
           Use at least 8 characters for a secure dashboard password.
         </p>
       </div>
@@ -141,7 +142,7 @@ export function SignupForm() {
       <button
         type="submit"
         disabled={isLoading || !isAuthConfigured}
-        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-4 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
       >
         {isLoading ? (
           <>
@@ -153,11 +154,11 @@ export function SignupForm() {
         )}
       </button>
 
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-stone-500">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-semibold text-slate-950 transition hover:text-sky-700"
+          className="font-semibold text-stone-950 transition hover:text-teal-700"
         >
           Sign in
         </Link>
