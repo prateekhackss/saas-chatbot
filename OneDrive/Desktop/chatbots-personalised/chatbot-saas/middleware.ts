@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = new Set(["/", "/login", "/favicon.ico", "/embed.js"]);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/favicon.ico", "/embed.js"]);
 const PUBLIC_PREFIXES = ["/api/chat", "/api/embed", "/widget", "/_next"];
 const PROTECTED_PREFIXES = ["/clients", "/dashboard"];
 const PUBLIC_FILE = /\.[^/]+$/;
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (pathname !== "/login" && isPublicPath(pathname)) {
+  if (pathname !== "/login" && pathname !== "/signup" && isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && pathname === "/login") {
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/clients";
     dashboardUrl.search = "";

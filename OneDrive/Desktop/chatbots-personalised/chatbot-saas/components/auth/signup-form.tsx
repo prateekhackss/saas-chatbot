@@ -1,12 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, LockKeyhole, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm() {
+export function SignupForm() {
   const router = useRouter();
   const isAuthConfigured =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -14,11 +14,13 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setSuccess(null);
 
     if (!isAuthConfigured) {
       setError(
@@ -30,19 +32,28 @@ export function LoginForm() {
     setIsLoading(true);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
     });
 
-    if (signInError) {
-      setError(signInError.message);
+    if (signUpError) {
+      setError(signUpError.message);
       setIsLoading(false);
       return;
     }
 
-    router.replace("/clients");
-    router.refresh();
+    setIsLoading(false);
+
+    if (data.session) {
+      router.replace("/clients");
+      router.refresh();
+      return;
+    }
+
+    setSuccess(
+      "Account created. Check your email to confirm your account, then sign in.",
+    );
   }
 
   return (
@@ -55,6 +66,13 @@ export function LoginForm() {
             `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in
             your Vercel environment variables, then redeploy.
           </p>
+        </div>
+      ) : null}
+
+      {success ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{success}</p>
         </div>
       ) : null}
 
@@ -92,14 +110,18 @@ export function LoginForm() {
           <input
             id="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
+            minLength={8}
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
+            placeholder="Create a password"
             className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
           />
         </div>
+        <p className="text-xs text-slate-500">
+          Use at least 8 characters for a secure dashboard password.
+        </p>
       </div>
 
       {error ? (
@@ -117,20 +139,20 @@ export function LoginForm() {
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Signing in...
+            Creating account...
           </>
         ) : (
-          "Sign in to dashboard"
+          "Create your account"
         )}
       </button>
 
       <p className="text-center text-sm text-slate-500">
-        Need an account?{" "}
+        Already have an account?{" "}
         <Link
-          href="/signup"
+          href="/login"
           className="font-semibold text-slate-950 transition hover:text-sky-700"
         >
-          Create one
+          Sign in
         </Link>
       </p>
     </form>

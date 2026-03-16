@@ -157,7 +157,7 @@ export async function MarketingLandingPage() {
               Sign In
             </Link>
             <Link
-              href="/login"
+              href="/signup"
               className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
             >
               Get Started
@@ -191,7 +191,7 @@ export async function MarketingLandingPage() {
 
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
-                  href="/login"
+                  href="/signup"
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-6 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800"
                 >
                   Build Your Chatbot
@@ -345,10 +345,10 @@ export async function MarketingLandingPage() {
                   will automatically use it as the live embed demo for visitors.
                 </p>
                 <Link
-                  href="/login"
+                  href="/signup"
                   className="mt-6 inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
-                  Sign in to set up a demo
+                  Create an account to set up a demo
                 </Link>
               </div>
             )}
@@ -435,7 +435,7 @@ export async function MarketingLandingPage() {
                   </div>
 
                   <Link
-                    href="/login"
+                    href="/signup"
                     className={`mt-8 inline-flex h-11 w-full items-center justify-center rounded-2xl text-sm font-semibold transition ${
                       plan.highlighted
                         ? "bg-slate-950 text-white hover:bg-slate-800"
