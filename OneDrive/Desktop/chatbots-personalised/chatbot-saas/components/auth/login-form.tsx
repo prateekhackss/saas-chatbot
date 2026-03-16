@@ -3,10 +3,15 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, LockKeyhole, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm() {
+type LoginFormProps = {
+  signupState?: string;
+  signupEmail?: string;
+};
+
+export function LoginForm({ signupState, signupEmail }: LoginFormProps) {
   const router = useRouter();
   const isAuthConfigured =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -15,6 +20,15 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const signupMessage =
+    signupState === "check-email"
+      ? `Account created. Check ${
+          signupEmail ?? "your email"
+        } for a confirmation link, then sign in.`
+      : signupState === "confirmed"
+        ? "Email confirmed. You can sign in to your dashboard now."
+        : null;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,6 +61,13 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {signupMessage ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{signupMessage}</p>
+        </div>
+      ) : null}
+
       {!isAuthConfigured ? (
         <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />

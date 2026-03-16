@@ -32,9 +32,16 @@ export function SignupForm() {
     setIsLoading(true);
 
     const supabase = createClient();
+    const emailRedirectTo =
+      typeof window === "undefined"
+        ? undefined
+        : `${window.location.origin}/login?signup=confirmed`;
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo,
+      },
     });
 
     if (signUpError) {
@@ -51,9 +58,9 @@ export function SignupForm() {
       return;
     }
 
-    setSuccess(
-      "Account created. Check your email to confirm your account, then sign in.",
-    );
+    setSuccess("Account created. Redirecting you to sign in...");
+    router.replace(`/login?signup=check-email&email=${encodeURIComponent(email)}`);
+    router.refresh();
   }
 
   return (
