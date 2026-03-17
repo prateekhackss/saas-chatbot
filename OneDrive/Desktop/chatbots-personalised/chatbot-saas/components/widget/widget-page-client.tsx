@@ -147,17 +147,16 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
         clientSlug: slug,
         sessionId,
       },
-      initialMessages: [
-        {
-          id: "welcome",
-          role: "assistant",
-          content: welcomeMessage,
-          parts: [{ type: "text", text: welcomeMessage }],
-        },
-      ],
     } as any) as any);
 
-  const hasUserMessages = messages.some((message: any) => message.role === "user");
+  const welcomeMsg = {
+    id: "welcome",
+    role: "assistant" as const,
+    content: welcomeMessage,
+  };
+  const allMessages = [welcomeMsg, ...messages];
+
+  const hasUserMessages = allMessages.some((message: any) => message.role === "user");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -248,7 +247,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
       ) : (
         <>
           <div className="flex-1 space-y-5 overflow-y-auto bg-gray-50/50 p-4 scroll-smooth">
-            {messages.map((message: any) => (
+            {allMessages.map((message: any) => (
               <div
                 key={message.id}
                 className={`flex w-full animate-fade-in-up ${
@@ -296,8 +295,8 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
             ))}
 
             {isLoading &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === "user" ? (
+            allMessages.length > 0 &&
+            allMessages[allMessages.length - 1].role === "user" ? (
               <div className="flex w-full justify-start animate-fade-in-up">
                 <div className="flex max-w-[85%] items-end gap-2">
                   <div className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-teal-50 bg-white shadow-sm">
