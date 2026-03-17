@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/groq": "^3.0.29",
+    "@ai-sdk/groq": "^1.0.12",
     "@ai-sdk/openai": "^3.0.41",
-    "@ai-sdk/react": "^3.0.118",
+    "@ai-sdk/react": "^1.0.5",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.1",
-    "ai": "^6.0.116",
+    "ai": "^4.1.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.577.0",
     "next": "^16.1.6",

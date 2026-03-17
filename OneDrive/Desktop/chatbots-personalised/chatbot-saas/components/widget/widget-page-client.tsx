@@ -139,13 +139,13 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
 
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
-    (useChat({
+    useChat({
       api: "/api/chat",
       body: {
         clientSlug: slug,
         sessionId,
       },
-    } as any) as any);
+    });
 
   const handleSuggestedQuestionClick = (question: string) => {
     append({ role: "user", content: question });
