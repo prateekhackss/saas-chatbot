@@ -1,4 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai';
+import { createGroq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
 
 export type ChatHistoryMessage = {
@@ -6,10 +6,8 @@ export type ChatHistoryMessage = {
   content: string;
 };
 
-// Initialize Groq via the OpenAI compatible endpoint in the Vercel AI SDK
-// As specified: "Use Vercel AI SDK's createOpenAI with Groq's base URL"
-const groq = createOpenAI({
-  baseURL: 'https://api.groq.com/openai/v1',
+// Initialize the native Groq provider for Vercel AI SDK
+const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
