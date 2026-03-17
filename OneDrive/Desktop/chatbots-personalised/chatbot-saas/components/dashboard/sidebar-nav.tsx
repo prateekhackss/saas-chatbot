@@ -40,15 +40,15 @@ export function SidebarNav() {
             href={item.href}
             className={`group flex items-start gap-3 rounded-2xl border px-4 py-3 transition ${
               isActive
-                ? "border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/10"
-                : "border-transparent bg-slate-50 text-slate-700 hover:border-slate-200 hover:bg-white"
+                ? "border-stone-900 bg-stone-900 text-white shadow-lg shadow-stone-900/10"
+                : "border-transparent bg-stone-50 text-stone-700 hover:border-stone-200 hover:bg-white"
             }`}
           >
             <span
               className={`mt-0.5 rounded-xl p-2 ${
                 isActive
                   ? "bg-white/10 text-white"
-                  : "bg-white text-slate-500 group-hover:text-slate-900"
+                  : "bg-white text-stone-500 group-hover:text-stone-900"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -59,7 +59,7 @@ export function SidebarNav() {
               </span>
               <span
                 className={`block text-xs ${
-                  isActive ? "text-slate-300" : "text-slate-500"
+                  isActive ? "text-stone-300" : "text-stone-500"
                 }`}
               >
                 {item.description}

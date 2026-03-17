@@ -19,6 +19,19 @@ const updateClientSchema = z.object({
     fallbackMessage: z.string().min(1, "Fallback message is required"),
     logoUrl: z.string().url().optional().or(z.literal("")),
     suggestedQuestions: z.array(z.string()),
+    allowedOrigins: z.array(z.string()).optional(),
+    leadCaptureEnabled: z.boolean().optional(),
+    leadCaptureMessage: z.string().optional(),
+    handoffWebhookUrl: z.string().url().optional().or(z.literal('')),
+    offlineMessage: z.string().optional(),
+    businessHours: z.object({
+      enabled: z.boolean(),
+      timezone: z.string(),
+      schedule: z.record(z.string(), z.object({
+        start: z.string(),
+        end: z.string()
+      }).nullable())
+    }).optional()
   }),
 });
 
@@ -63,6 +76,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
     }
 
+    // NOTE: Row Level Security (RLS) automatically ensures that `existingClient`
+    // will only be found if it belongs to the authenticated user.
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
@@ -106,5 +121,48 @@ export async function PATCH(
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const db = supabase as any;
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify the client exists and belongs to this user (RLS will enforce this)
+    const { data: client, error: clientError } = await db
+      .from('clients')
+      .select('id, name')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (clientError || !client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    // CASCADE will delete documents, chunks, and conversations automatically
+    const { error: deleteError } = await db
+      .from('clients')
+      .delete()
+      .eq('id', id);
+
+    if (deleteError) {
+      console.error('Delete client error:', deleteError);
+      return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: `Client "${client.name}" deleted successfully` });
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

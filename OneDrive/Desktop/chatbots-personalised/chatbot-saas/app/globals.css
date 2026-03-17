@@ -2,9 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root {
+    /* === PRIMARY: Deep Teal === */
+    --primary: #0F766E;          /* teal-700 */
+    --primary-hover: #0D9488;    /* teal-600 */
+    --primary-light: #CCFBF1;    /* teal-100 */
+    --primary-muted: #F0FDFA;    /* teal-50 */
+    --on-primary: #FFFFFF;
+
+    /* === ACCENT: Warm Amber === */
+    --accent: #D97706;           /* amber-600 */
+    --accent-hover: #B45309;     /* amber-700 */
+    --accent-light: #FEF3C7;    /* amber-100 */
+    --accent-muted: #FFFBEB;    /* amber-50 */
+    --on-accent: #FFFFFF;
+
+    /* === SURFACES === */
+    --background: #FAFAF9;       /* stone-50 */
+    --surface: #FFFFFF;
+    --surface-raised: #FFFFFF;
+    --foreground: #1C1917;       /* stone-900 */
+
+    /* === TEXT === */
+    --text-primary: #1C1917;     /* stone-900 */
+    --text-secondary: #57534E;   /* stone-600 */
+    --text-tertiary: #A8A29E;    /* stone-400 */
+    --text-on-dark: #FAFAF9;     /* stone-50 */
+
+    /* === BORDERS === */
+    --border: #E7E5E4;           /* stone-200 */
+    --border-hover: #D6D3D1;     /* stone-300 */
+    --border-focus: #0F766E;     /* same as primary */
+
+    /* === STATES === */
+    --success: #059669;          /* emerald-600 */
+    --success-light: #D1FAE5;    /* emerald-100 */
+    --warning: #D97706;          /* amber-600 */
+    --warning-light: #FEF3C7;
+    --destructive: #DC2626;      /* red-600 */
+    --destructive-light: #FEE2E2;
+
+    /* === SIDEBAR (dark) === */
+    --sidebar-bg: #1C1917;       /* stone-900 */
+    --sidebar-border: #292524;   /* stone-800 */
+    --sidebar-text: #E7E5E4;    /* stone-200 */
+    --sidebar-text-muted: #A8A29E; /* stone-400 */
+    --sidebar-active-bg: rgba(13, 148, 136, 0.15);
+    --sidebar-active-text: #5EEAD4; /* teal-300 */
+    --sidebar-active-border: #14B8A6; /* teal-500 */
+
+    /* === WIDGET (defaults, overrideable per client) === */
+    --widget-header-bg: var(--primary);
+    --widget-user-bubble: var(--primary);
+    --widget-bot-bubble: #FFFFFF;
+    --widget-input-focus: var(--primary);
+
+    /* === LAYOUT === */
+    --radius-sm: 0.5rem;     /* 8px */
+    --radius-md: 0.75rem;    /* 12px */
+    --radius-lg: 1rem;       /* 16px */
+    --radius-xl: 1.5rem;     /* 24px */
+    --radius-2xl: 2rem;      /* 32px */
+  }
+
+  .dark {
+    --background: #1C1917;
+    --surface: #292524;
+    --surface-raised: #44403C;
+    --foreground: #FAFAF9;
+    --text-primary: #FAFAF9;
+    --text-secondary: #D6D3D1;
+    --text-tertiary: #78716C;
+    --border: #44403C;
+    --border-hover: #57534E;
+    --primary-muted: rgba(13, 148, 136, 0.15);
+    --accent-muted: rgba(217, 119, 6, 0.15);
+  }
 }
 
 body {

@@ -225,14 +225,14 @@ export default function NewClientPage() {
     <div className="mx-auto max-w-5xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-400">
             Client Onboarding
           </p>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+            <h1 className="text-3xl font-bold tracking-tight text-stone-950">
               Onboard New Client
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-stone-500">
               Configure branding, bot behavior, and suggested questions before
               you deploy the widget.
             </p>
@@ -240,7 +240,7 @@ export default function NewClientPage() {
         </div>
         <Link
           href="/clients"
-          className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+          className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
         >
           Cancel
         </Link>
@@ -248,7 +248,7 @@ export default function NewClientPage() {
 
       <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.45fr_0.9fr]">
         <div className="space-y-6">
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <SectionHeader
               title="Basic Info"
               description="Set the internal client record and the public widget slug."
@@ -259,7 +259,7 @@ export default function NewClientPage() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="e.g. Sarah's Fitness Coaching"
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
 
@@ -268,7 +268,7 @@ export default function NewClientPage() {
                   value={brandName}
                   onChange={(event) => setBrandName(event.target.value)}
                   placeholder="What customers should see"
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
@@ -286,20 +286,20 @@ export default function NewClientPage() {
                     setSlug(slugify(event.target.value));
                   }}
                   placeholder="sarahs-fitness-coaching"
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <SectionHeader
               title="Branding"
               description="Tune the widget look and first-impression copy."
             />
             <div className="mt-6 grid gap-5 md:grid-cols-2">
               <Field label="Primary Color" required>
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4">
+                <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                   <input
                     type="color"
                     value={primaryColor}
@@ -307,17 +307,17 @@ export default function NewClientPage() {
                     className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                   />
                   <span
-                    className="h-4 w-4 rounded-full border border-slate-200"
+                    className="h-4 w-4 rounded-full border border-stone-200"
                     style={{ backgroundColor: primaryColor }}
                   />
-                  <span className="text-sm font-medium text-slate-600">
+                  <span className="text-sm font-medium text-stone-600">
                     {primaryColor}
                   </span>
                 </div>
               </Field>
 
               <Field label="Text Color" required>
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4">
+                <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                   <input
                     type="color"
                     value={textColor}
@@ -325,10 +325,10 @@ export default function NewClientPage() {
                     className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                   />
                   <span
-                    className="h-4 w-4 rounded-full border border-slate-200"
+                    className="h-4 w-4 rounded-full border border-stone-200"
                     style={{ backgroundColor: textColor }}
                   />
-                  <span className="text-sm font-medium text-slate-600">
+                  <span className="text-sm font-medium text-stone-600">
                     {textColor}
                   </span>
                 </div>
@@ -341,7 +341,7 @@ export default function NewClientPage() {
                   value={welcomeMessage}
                   onChange={(event) => setWelcomeMessage(event.target.value)}
                   placeholder="Hi there! How can I help you today?"
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
 
@@ -350,13 +350,13 @@ export default function NewClientPage() {
                   value={logoUrl}
                   onChange={(event) => setLogoUrl(event.target.value)}
                   placeholder="https://example.com/logo.png"
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <SectionHeader
               title="Behavior"
               description="Define how the assistant greets users and what it does when context is missing."
@@ -368,7 +368,7 @@ export default function NewClientPage() {
                   onChange={(event) =>
                     setPosition(event.target.value as "bottom-right" | "bottom-left")
                   }
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 >
                   <option value="bottom-right">Bottom Right</option>
                   <option value="bottom-left">Bottom Left</option>
@@ -380,7 +380,7 @@ export default function NewClientPage() {
                   value={tone}
                   onChange={(event) => setTone(event.target.value)}
                   placeholder='Examples: "friendly and casual", "professional and concise"'
-                  className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
@@ -395,13 +395,13 @@ export default function NewClientPage() {
                   value={fallbackMessage}
                   onChange={(event) => setFallbackMessage(event.target.value)}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                  className="w-full rounded-2xl border border-stone-200 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <SectionHeader
               title="Suggested Questions"
               description="Preload common prompts to help users start a conversation quickly."
@@ -413,12 +413,12 @@ export default function NewClientPage() {
                     value={question}
                     onChange={(event) => updateQuestion(index, event.target.value)}
                     placeholder={`Suggested question ${index + 1}`}
-                    className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                    className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                   />
                   <button
                     type="button"
                     onClick={() => removeQuestion(index)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
                     aria-label={`Remove question ${index + 1}`}
                   >
                     <X className="h-4 w-4" />
@@ -430,7 +430,7 @@ export default function NewClientPage() {
             <button
               type="button"
               onClick={addQuestion}
-              className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white hover:text-slate-950"
+              className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:bg-white hover:text-stone-950"
             >
               <Plus className="h-4 w-4" />
               Add Question
@@ -439,12 +439,12 @@ export default function NewClientPage() {
         </div>
 
         <div className="space-y-6">
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <SectionHeader
               title="Live Snapshot"
               description="Preview the key widget choices before creating the client."
             />
-            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+            <div className="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
               <div
                 className="rounded-[1.25rem] px-4 py-4 text-sm shadow-sm"
                 style={{ backgroundColor: primaryColor, color: textColor }}
@@ -470,7 +470,7 @@ export default function NewClientPage() {
             </div>
           </section>
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <SectionHeader
                 title="Embed Code Preview"
@@ -479,13 +479,13 @@ export default function NewClientPage() {
               <button
                 type="button"
                 onClick={handleCopyEmbedCode}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <pre className="mt-6 overflow-x-auto rounded-[1.25rem] bg-slate-950 p-4 text-xs leading-6 text-slate-100">
+            <pre className="mt-6 overflow-x-auto rounded-[1.25rem] bg-stone-950 p-4 text-xs leading-6 text-stone-100">
               {embedCode}
             </pre>
           </section>
@@ -501,16 +501,16 @@ export default function NewClientPage() {
             </div>
           )}
 
-          <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold tracking-tight text-slate-950">
+                <h2 className="text-base font-semibold tracking-tight text-stone-950">
                   Ready to deploy
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500">
+                <p className="mt-2 text-sm leading-6 text-stone-500">
                   Once created, you&apos;ll be redirected to the client workspace
                   where you can manage documents, analytics, and the live widget
                   preview.
@@ -522,7 +522,7 @@ export default function NewClientPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
               >
                 {isSubmitting ? (
                   <>
@@ -536,7 +536,7 @@ export default function NewClientPage() {
 
               <Link
                 href="/clients"
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex h-12 items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
               >
                 Cancel
               </Link>
@@ -557,10 +557,10 @@ function SectionHeader({
 }) {
   return (
     <div>
-      <h2 className="text-lg font-semibold tracking-tight text-slate-950">
+      <h2 className="text-lg font-semibold tracking-tight text-stone-950">
         {title}
       </h2>
-      <p className="mt-1 text-sm text-slate-500">{description}</p>
+      <p className="mt-1 text-sm text-stone-500">{description}</p>
     </div>
   );
 }
@@ -578,12 +578,12 @@ function Field({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <span className="flex items-center gap-2 text-sm font-medium text-stone-700">
         {label}
         {required ? <span className="text-rose-500">*</span> : null}
       </span>
       {children}
-      {hint ? <span className="block text-xs text-slate-500">{hint}</span> : null}
+      {hint ? <span className="block text-xs text-stone-500">{hint}</span> : null}
     </label>
   );
 }
@@ -596,11 +596,11 @@ function PreviewStat({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-      <div className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3">
+      <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400">
         {label}
       </div>
-      <div className="mt-2 text-sm font-semibold text-slate-900">{value}</div>
+      <div className="mt-2 text-sm font-semibold text-stone-900">{value}</div>
     </div>
   );
 }

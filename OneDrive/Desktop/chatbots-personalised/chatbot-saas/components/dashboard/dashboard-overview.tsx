@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, Bot, MessageSquareText, Users } from "lucide-react";
+import { Activity, Bot, MessageSquareText, Users, UserPlus, MailPlus, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export async function DashboardOverview() {
@@ -12,84 +12,99 @@ export async function DashboardOverview() {
 
   const { data: conversations } = await db
     .from("conversations")
-    .select("message_count");
+    .select("message_count, estimated_tokens");
 
   let totalMessages = 0;
+  let totalUsageTokens = 0;
   if (conversations) {
-    totalMessages = conversations.reduce(
-      (acc: number, conversation: any) =>
-        acc + (conversation.message_count || 0),
-      0,
-    );
+    totalMessages = conversations.reduce((acc: number, curr: any) => acc + (curr.message_count || 0), 0);
+    totalUsageTokens = conversations.reduce((acc: number, curr: any) => acc + (curr.estimated_tokens || 0), 0);
   }
+
+  const { data: leads } = await db
+    .from("leads")
+    .select("id");
+  const totalLeads = leads?.length || 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900">
           Platform Overview
         </h1>
-        <p className="text-slate-500">
+        <p className="text-stone-500">
           Monitor your entire SaaS chatbot network at a glance.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-6">
         <StatCard
           title="Total Clients"
-          value={totalClients}
+          value={totalClients.toString()}
           subtitle="Registered accounts"
-          icon={<Users className="h-4 w-4 text-slate-400" />}
+          icon={<Users className="h-4 w-4 text-stone-400" />}
         />
         <StatCard
           title="Active Chatbots"
-          value={activeBots}
+          value={activeBots.toString()}
           subtitle="Currently serving widgets"
           icon={<Activity className="h-4 w-4 text-emerald-500" />}
         />
         <StatCard
           title="Total Conversations"
-          value={conversations?.length || 0}
+          value={conversations?.length.toString() || "0"}
           subtitle="Across all clients"
-          icon={<MessageSquareText className="h-4 w-4 text-slate-400" />}
+          icon={<MessageSquareText className="h-4 w-4 text-stone-400" />}
         />
         <StatCard
-          title="Total Tokens"
-          value={totalMessages}
+          title="Total Messages"
+          value={totalMessages.toString()}
           subtitle="Estimated Llama 3.3 usage"
-          icon={<Bot className="h-4 w-4 text-slate-400" />}
+          icon={<Bot className="h-4 w-4 text-stone-400" />}
+        />
+        <StatCard
+          title="Total Lead Captures"
+          value={totalLeads?.toString() || "0"}
+          subtitle="Emails collected"
+          icon={<MailPlus className="h-4 w-4 text-blue-500" />}
+        />
+        <StatCard
+          title="Total Tokens Estimated"
+          value={totalUsageTokens.toLocaleString()}
+          subtitle="Calculated from transcripts"
+          icon={<Zap className="h-4 w-4 text-amber-500" />}
         />
       </div>
 
       <div className="mt-8">
-        <h2 className="mb-4 text-xl font-semibold text-slate-900">
+        <h2 className="mb-4 text-xl font-semibold text-stone-900">
           Quick Actions
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
             href="/clients"
-            className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100"
+            className="flex items-center rounded-xl border border-stone-200 bg-stone-50 p-4 transition-colors hover:bg-stone-100"
           >
-            <div className="mr-4 rounded-lg bg-blue-100 p-2">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="mr-4 rounded-lg bg-teal-100 p-2">
+              <Users className="h-5 w-5 text-teal-600" />
             </div>
             <div>
-              <div className="font-medium text-slate-900">Manage Clients</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-stone-900">Manage Clients</div>
+              <div className="text-sm text-stone-500">
                 View and edit client configurations.
               </div>
             </div>
           </Link>
           <Link
             href="/clients/new"
-            className="flex items-center rounded-xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100"
+            className="flex items-center rounded-xl border border-stone-200 bg-stone-50 p-4 transition-colors hover:bg-stone-100"
           >
-            <div className="mr-4 rounded-lg bg-emerald-100 p-2">
-              <Bot className="h-5 w-5 text-emerald-600" />
+            <div className="mr-4 rounded-lg bg-amber-100 p-2">
+              <Bot className="h-5 w-5 text-amber-600" />
             </div>
             <div>
-              <div className="font-medium text-slate-900">Deploy New Bot</div>
-              <div className="text-sm text-slate-500">
+              <div className="font-medium text-stone-900">Deploy New Bot</div>
+              <div className="text-sm text-stone-500">
                 Onboard a new customer to the platform.
               </div>
             </div>
@@ -107,18 +122,18 @@ function StatCard({
   icon,
 }: {
   title: string;
-  value: number;
+  value: string;
   subtitle: string;
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
       <div className="flex flex-row items-center justify-between pb-2">
-        <h3 className="text-sm font-medium text-slate-500">{title}</h3>
+        <h3 className="text-sm font-medium text-stone-500">{title}</h3>
         {icon}
       </div>
-      <div className="text-3xl font-bold text-slate-900">{value}</div>
-      <p className="mt-1 text-xs text-slate-500">{subtitle}</p>
+      <div className="text-3xl font-bold text-stone-900">{value}</div>
+      <p className="mt-1 text-xs text-stone-500">{subtitle}</p>
     </div>
   );
 }

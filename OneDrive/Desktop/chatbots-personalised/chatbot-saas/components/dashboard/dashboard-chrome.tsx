@@ -99,9 +99,9 @@ export function DashboardChrome({
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-stone-50">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-slate-800 bg-slate-950 text-slate-100 lg:flex">
+        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-stone-800 bg-stone-950 text-stone-100 lg:flex">
           <SidebarContent
             pathname={pathname}
             userEmail={userEmail}
@@ -110,40 +110,40 @@ export function DashboardChrome({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur">
             <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:text-slate-950 lg:hidden"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700 transition hover:border-stone-300 hover:text-stone-950 lg:hidden"
                   aria-label="Open navigation menu"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
 
                 <div className="space-y-1">
-                  <div className="flex max-w-[72vw] items-center gap-2 overflow-x-auto whitespace-nowrap text-xs font-medium uppercase tracking-[0.2em] text-slate-400 sm:max-w-none">
+                  <div className="flex max-w-[72vw] items-center gap-2 overflow-x-auto whitespace-nowrap text-xs font-medium uppercase tracking-[0.2em] text-stone-400 sm:max-w-none">
                     {breadcrumbs.map((crumb, index) => (
                       <span key={`${crumb.href}-${index}`} className="flex items-center gap-2">
                         {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
                         <Link
                           href={crumb.href}
-                          className="transition hover:text-slate-600"
+                          className="transition hover:text-stone-600"
                         >
                           {crumb.label}
                         </Link>
                       </span>
                     ))}
                   </div>
-                  <h1 className="text-lg font-semibold tracking-tight text-slate-950">
+                  <h1 className="text-lg font-semibold tracking-tight text-stone-950">
                     {pageTitle}
                   </h1>
                 </div>
               </div>
 
-              <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm sm:flex">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-900">
+              <div className="hidden items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 shadow-sm sm:flex">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold text-stone-900">
                   {getInitials(userEmail)}
                 </span>
                 <span className="max-w-[220px] truncate">{userEmail}</span>
@@ -161,27 +161,27 @@ export function DashboardChrome({
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-950/55"
+            className="absolute inset-0 bg-stone-950/55"
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="Close navigation menu"
           />
-          <aside className="relative flex h-full w-[86vw] max-w-[320px] flex-col bg-slate-950 text-slate-100 shadow-2xl">
+          <aside className="relative flex h-full w-[86vw] max-w-[320px] flex-col bg-stone-950 text-stone-100 shadow-2xl">
             <div className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-500/15 text-teal-300">
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
                   <div className="text-sm font-semibold tracking-tight">
                     NexusChat
                   </div>
-                  <div className="text-xs text-slate-400">Admin workspace</div>
+                  <div className="text-xs text-stone-400">Admin workspace</div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-300"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-stone-800 bg-stone-900 text-stone-300"
                 aria-label="Close navigation menu"
               >
                 <X className="h-5 w-5" />
@@ -196,7 +196,7 @@ export function DashboardChrome({
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -208,8 +208,8 @@ export function DashboardChrome({
                 href={item.href}
                 className={`flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium transition ${
                   isActive
-                    ? "bg-slate-950 text-white"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-stone-950 text-white"
+                    : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -234,16 +234,16 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="border-b border-slate-800 px-5 py-5">
+      <div className="border-b border-stone-800 px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-3" onClick={onNavigate}>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500/15 text-teal-300">
             <Bot className="h-5 w-5" />
           </div>
           <div>
             <div className="text-sm font-semibold tracking-tight text-white">
               NexusChat
             </div>
-            <div className="text-xs text-slate-400">Operations Console</div>
+            <div className="text-xs text-stone-400">Operations Console</div>
           </div>
         </Link>
       </div>
@@ -261,15 +261,15 @@ function SidebarContent({
                 onClick={onNavigate}
                 className={`group flex items-center gap-3 rounded-2xl border-l-2 px-4 py-3 transition ${
                   isActive
-                    ? "border-sky-400 bg-white/8 text-white"
-                    : "border-transparent text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "border-teal-400 bg-white/8 text-white"
+                    : "border-transparent text-stone-300 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                     isActive
-                      ? "bg-sky-400/15 text-sky-300"
-                      : "bg-slate-900 text-slate-400 group-hover:text-slate-200"
+                      ? "bg-teal-400/15 text-teal-300"
+                      : "bg-stone-900 text-stone-400 group-hover:text-stone-200"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -278,7 +278,7 @@ function SidebarContent({
                   <span className="block text-sm font-semibold tracking-tight">
                     {item.label}
                   </span>
-                  <span className="block truncate text-xs text-slate-400">
+                  <span className="block truncate text-xs text-stone-400">
                     {item.description}
                   </span>
                 </span>
@@ -288,12 +288,12 @@ function SidebarContent({
         </nav>
       </div>
 
-      <div className="border-t border-slate-800 px-4 py-5">
+      <div className="border-t border-stone-800 px-4 py-5">
         <div className="mb-4 rounded-2xl bg-white/5 px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
+          <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
             Signed In
           </div>
-          <div className="mt-2 truncate text-sm text-slate-200">{userEmail}</div>
+          <div className="mt-2 truncate text-sm text-stone-200">{userEmail}</div>
         </div>
         <LogoutButton tone="dark" />
       </div>

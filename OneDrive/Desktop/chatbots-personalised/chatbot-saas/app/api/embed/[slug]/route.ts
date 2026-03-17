@@ -4,6 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 // Opt out of caching; we need real-time config in case the client updates their branding
 export const dynamic = 'force-dynamic';
 
+// WARNING: This in-memory rate limiter does NOT persist across serverless invocations.
+// It only works within a single warm instance. For production, replace with:
+// import { Ratelimit } from '@upstash/ratelimit'
+// import { Redis } from '@upstash/redis'
+// const ratelimit = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(20, '60 s') })
 // Lightweight In-Memory Rate Limiter (Note: In a multi-region Edge deployment, using Redis/Upstash is preferred)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const RATE_LIMIT = 50; // max config fetches per minute

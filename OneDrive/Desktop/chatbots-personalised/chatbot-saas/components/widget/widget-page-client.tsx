@@ -59,11 +59,78 @@ type ChatInterfaceProps = {
   config: ClientConfig;
 };
 
+function isWithinBusinessHours(config: ClientConfig): boolean {
+  if (!config.businessHours?.enabled) return true; // no config = always online
+  
+  const now = new Date();
+  const tz = config.businessHours.timezone || 'UTC';
+  const formatter = new Intl.DateTimeFormat('en-US', { 
+    timeZone: tz, 
+    weekday: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    hour12: false 
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const day = parts.find(p => p.type === 'weekday')?.value?.toLowerCase().slice(0, 3);
+  const hour = parts.find(p => p.type === 'hour')?.value;
+  const minute = parts.find(p => p.type === 'minute')?.value;
+  const currentTime = `${hour}:${minute}`;
+  
+  const daySchedule = config.businessHours.schedule[day || ''];
+  if (!daySchedule) return false; // no schedule for this day = offline
+  
+  return currentTime >= daySchedule.start && currentTime <= daySchedule.end;
+}
+
 function ChatInterface({ slug, config }: ChatInterfaceProps) {
-  const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionId] = useState(() => {
+    const storageKey = `nexuschat-session-${slug}`;
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(storageKey);
+      if (stored) return stored;
+      const newId = crypto.randomUUID();
+      window.localStorage.setItem(storageKey, newId);
+      return newId;
+    }
+    return crypto.randomUUID();
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const primaryColor = config.primaryColor || "#000000";
+  const isOnline = isWithinBusinessHours(config);
+  const [leadCaptured, setLeadCaptured] = useState(() => {
+    if (typeof window !== 'undefined') {
+       return window.localStorage.getItem(`nexuschat-lead-${slug}`) === 'captured';
+    }
+    return false;
+  });
+  const [leadFormState, setLeadFormState] = useState({ name: '', email: '', submitting: false, error: '' });
+
+  const handleLeadSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLeadFormState(prev => ({ ...prev, submitting: true, error: '' }));
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientSlug: slug,
+          sessionId,
+          name: leadFormState.name,
+          email: leadFormState.email
+        })
+      });
+      if (!res.ok) throw new Error('Failed to submit');
+      
+      localStorage.setItem(`nexuschat-lead-${slug}`, 'captured');
+      setLeadCaptured(true);
+    } catch (err) {
+      setLeadFormState(prev => ({ ...prev, error: 'Please try again.', submitting: false }));
+    }
+  };
+
+  const primaryColor = config.primaryColor || "#0F766E";
   const botIconUrl = config.logoUrl || null;
   const brandName = config.brandName || "This Company";
   const welcomeMessage =
@@ -117,132 +184,194 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
             Typically replies instantly
           </span>
         </div>
+        <button 
+          onClick={() => {
+            const storageKey = `nexuschat-session-${slug}`;
+            localStorage.removeItem(storageKey);
+            window.location.reload();
+          }}
+          className="ml-auto text-[11px] text-white/70 hover:text-white transition"
+          title="Start new conversation"
+        >
+          New chat
+        </button>
       </div>
 
-      <div className="flex-1 space-y-5 overflow-y-auto bg-gray-50/50 p-4 scroll-smooth">
-        {messages.map((message: any) => (
-          <div
-            key={message.id}
-            className={`flex w-full animate-fade-in-up ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`flex max-w-[85%] items-end gap-2 ${
-                message.role === "user" ? "flex-row-reverse" : "flex-row"
-              }`}
-            >
-              <div
-                className={`mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-sm ${
-                  message.role === "user"
-                    ? "border-blue-100 bg-blue-50"
-                    : "overflow-hidden border-gray-100 bg-white"
-                }`}
-              >
-                {message.role === "user" ? (
-                  <User className="h-4 w-4 text-blue-500" />
-                ) : botIconUrl ? (
-                  <img src={botIconUrl} className="h-full w-full object-cover" />
-                ) : (
-                  <Bot className="h-4 w-4 text-gray-500" />
-                )}
-              </div>
-
-              <div
-                className={`rounded-2xl px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${
-                  message.role === "user"
-                    ? "rounded-br-sm font-medium text-white"
-                    : "rounded-bl-sm border border-gray-100 bg-white text-gray-800"
-                }`}
-                style={message.role === "user" ? { backgroundColor: primaryColor } : {}}
-              >
-                {message.content.split("\n").map((line: string, index: number) => (
-                  <span key={index}>
-                    {line}
-                    {index !== message.content.split("\n").length - 1 ? <br /> : null}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {isLoading &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === "user" ? (
-          <div className="flex w-full justify-start animate-fade-in-up">
-            <div className="flex max-w-[85%] items-end gap-2">
-              <div className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white shadow-sm">
-                {botIconUrl ? (
-                  <img src={botIconUrl} className="h-full w-full object-cover" />
-                ) : (
-                  <Bot className="h-4 w-4 text-gray-500" />
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-gray-100 bg-white px-5 py-3.5 shadow-sm">
-                <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400/60 [animation-delay:-0.3s]"></div>
-                <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400/60 [animation-delay:-0.15s]"></div>
-                <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400/60"></div>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        <div ref={messagesEndRef} className="h-2" />
-      </div>
-
-      {!isLoading &&
-      !hasUserMessages &&
-      Array.isArray(config.suggestedQuestions) &&
-      config.suggestedQuestions.length > 0 ? (
-        <div className="flex shrink-0 flex-wrap justify-start gap-2 bg-gray-50/50 px-4 pb-2 pt-1">
-          {config.suggestedQuestions.map((question: string, index: number) => (
+      {!isOnline && leadCaptured ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50/50">
+           <Bot className="h-12 w-12 text-gray-300 mb-4" />
+           <p className="text-gray-600 font-medium">Thank you! We will get back to you soon.</p>
+        </div>
+      ) : (!isOnline || (config.leadCaptureEnabled && !leadCaptured)) ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50/50">
+          <Bot className="h-10 w-10 text-gray-400 mb-3" />
+          <p className="text-sm font-medium text-gray-700 mb-6">
+            {!isOnline 
+              ? (config.offlineMessage || "We're currently offline. Leave your email and we'll get back to you!")
+              : (config.leadCaptureMessage || "Before we chat, could you share your email?")}
+          </p>
+          
+          <form onSubmit={handleLeadSubmit} className="w-full max-w-sm space-y-3">
+            <input
+              type="text"
+              placeholder="Name (Optional)"
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-opacity-20"
+              style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+              value={leadFormState.name}
+              onChange={e => setLeadFormState(prev => ({ ...prev, name: e.target.value }))}
+              disabled={leadFormState.submitting}
+            />
+            <input
+              type="email"
+              placeholder="Email Address"
+              required
+              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-opacity-20"
+              style={{ "--tw-ring-color": primaryColor } as React.CSSProperties}
+              value={leadFormState.email}
+              onChange={e => setLeadFormState(prev => ({ ...prev, email: e.target.value }))}
+              disabled={leadFormState.submitting}
+            />
+            {leadFormState.error && (
+               <p className="text-xs text-red-500">{leadFormState.error}</p>
+            )}
             <button
-              key={index}
-              onClick={() => handleSuggestedQuestionClick(question)}
-              className="line-clamp-1 cursor-pointer rounded-full border border-gray-200 bg-white px-3.5 py-2 text-left text-[12px] font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow active:scale-95"
-              style={{ color: primaryColor }}
+              type="submit"
+              disabled={leadFormState.submitting}
+              className="w-full flex justify-center rounded-xl py-2.5 text-sm font-medium text-white shadow-sm hover:opacity-90 transition disabled:opacity-50"
+              style={{ backgroundColor: primaryColor }}
             >
-              {question}
+              {leadFormState.submitting ? <Loader2 className="h-4 w-4 animate-spin text-white" /> : "Start Chatting"}
             </button>
-          ))}
+          </form>
         </div>
-      ) : null}
+      ) : (
+        <>
+          <div className="flex-1 space-y-5 overflow-y-auto bg-gray-50/50 p-4 scroll-smooth">
+            {messages.map((message: any) => (
+              <div
+                key={message.id}
+                className={`flex w-full animate-fade-in-up ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`flex max-w-[85%] items-end gap-2 ${
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  }`}
+                >
+                  <div
+                    className={`mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-sm ${
+                      message.role === "user"
+                        ? "border-teal-100 bg-teal-50"
+                        : "overflow-hidden border-teal-50 bg-white"
+                    }`}
+                  >
+                    {message.role === "user" ? (
+                      <User className="h-4 w-4 text-teal-600" />
+                    ) : botIconUrl ? (
+                      <img src={botIconUrl} className="h-full w-full object-cover" />
+                    ) : (
+                      <Bot className="h-4 w-4 text-gray-500" />
+                    )}
+                  </div>
 
-      <div className="shrink-0 border-t border-gray-100 bg-white p-3">
-        <form onSubmit={handleSubmit} className="group relative flex items-center">
-          <input
-            value={input}
-            onChange={handleInputChange}
-            disabled={isLoading}
-            placeholder="Type your message..."
-            className="w-full rounded-full border border-gray-200 bg-gray-50/50 py-3.5 pl-5 pr-12 text-[14px] text-gray-900 transition-all placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:opacity-50"
-            style={
-              input
-                ? ({
-                    "--tw-ring-color": primaryColor,
-                    borderColor: primaryColor,
-                  } as React.CSSProperties)
-                : {}
-            }
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="absolute right-1.5 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <Send className="ml-0.5 h-4 w-4" />
-          </button>
-        </form>
+                  <div
+                    className={`rounded-2xl px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${
+                      message.role === "user"
+                        ? "rounded-br-sm font-medium text-white"
+                        : "rounded-bl-sm border border-teal-50 bg-white text-gray-800"
+                    }`}
+                    style={message.role === "user" ? { backgroundColor: primaryColor } : {}}
+                  >
+                    {message.content.split("\n").map((line: string, index: number) => (
+                      <span key={index}>
+                        {line}
+                        {index !== message.content.split("\n").length - 1 ? <br /> : null}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
 
-        <div className="mt-2.5 mb-0.5 flex w-full items-center justify-center gap-1 text-center text-[10px] font-medium tracking-wide text-gray-400 opacity-80">
-          Powered by
-          <span className="flex items-center font-bold text-gray-500">
-            NexusChat
-          </span>
-        </div>
-      </div>
+            {isLoading &&
+            messages.length > 0 &&
+            messages[messages.length - 1].role === "user" ? (
+              <div className="flex w-full justify-start animate-fade-in-up">
+                <div className="flex max-w-[85%] items-end gap-2">
+                  <div className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-teal-50 bg-white shadow-sm">
+                    {botIconUrl ? (
+                      <img src={botIconUrl} className="h-full w-full object-cover" />
+                    ) : (
+                      <Bot className="h-4 w-4 text-gray-500" />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-teal-50 bg-white px-5 py-3.5 shadow-sm">
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400/60 [animation-delay:-0.3s]"></div>
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400/60 [animation-delay:-0.15s]"></div>
+                    <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400/60"></div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div ref={messagesEndRef} className="h-2" />
+          </div>
+
+          {!isLoading &&
+          !hasUserMessages &&
+          Array.isArray(config.suggestedQuestions) &&
+          config.suggestedQuestions.length > 0 ? (
+            <div className="flex shrink-0 flex-wrap justify-start gap-2 bg-gray-50/50 px-4 pb-2 pt-1">
+              {config.suggestedQuestions.map((question: string, index: number) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestedQuestionClick(question)}
+                  className="line-clamp-1 cursor-pointer rounded-full border border-gray-200 bg-white px-3.5 py-2 text-left text-[12px] font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow active:scale-95"
+                  style={{ color: primaryColor }}
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="shrink-0 border-t border-teal-50 bg-white p-3">
+            <form onSubmit={handleSubmit} className="group relative flex items-center">
+              <input
+                value={input}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                placeholder="Type your message..."
+                className="w-full rounded-full border border-gray-200 bg-gray-50/50 py-3.5 pl-5 pr-12 text-[14px] text-gray-900 transition-all placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:opacity-50"
+                style={
+                  input
+                    ? ({
+                        "--tw-ring-color": primaryColor,
+                        borderColor: primaryColor,
+                      } as React.CSSProperties)
+                    : {}
+                }
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="absolute right-1.5 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ backgroundColor: primaryColor }}
+              >
+                <Send className="ml-0.5 h-4 w-4" />
+              </button>
+            </form>
+
+            <div className="mt-2.5 mb-0.5 flex w-full items-center justify-center gap-1 text-center text-[10px] font-medium tracking-wide text-gray-400 opacity-80">
+              Powered by
+              <span className="flex items-center font-bold text-gray-500">
+                NexusChat
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

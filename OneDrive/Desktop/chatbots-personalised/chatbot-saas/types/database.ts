@@ -8,6 +8,19 @@ export type ClientConfig = {
   fallbackMessage: string;
   logoUrl?: string; // Optional since they might not have a logo
   suggestedQuestions: string[];
+  allowedOrigins?: string[]; // Optional: restrict which domains can use this client's widget
+  
+  // Revenue Features
+  leadCaptureEnabled?: boolean;
+  leadCaptureMessage?: string; // e.g. "Before we chat, could you share your email?"
+  handoffWebhookUrl?: string; // Optional webhook URL for escalation notifications
+  offlineMessage?: string; // "We're currently offline. Leave your email and we'll get back to you!"
+  businessHours?: {
+    enabled: boolean;
+    timezone: string; // e.g. "America/New_York"
+    schedule: Record<string, { start: string; end: string } | null>; 
+    // e.g. { mon: { start: "09:00", end: "17:00" }, sat: null, sun: null }
+  };
 };
 
 export type Database = {
@@ -16,6 +29,7 @@ export type Database = {
       clients: {
         Row: {
           id: string;
+          user_id: string;
           name: string;
           slug: string;
           config: ClientConfig;
@@ -25,6 +39,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          user_id?: string;
           name: string;
           slug: string;
           config?: ClientConfig;
@@ -34,6 +49,7 @@ export type Database = {
         };
         Update: {
           id?: string;
+          user_id?: string;
           name?: string;
           slug?: string;
           config?: ClientConfig;

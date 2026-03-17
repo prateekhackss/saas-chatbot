@@ -47,27 +47,27 @@ export function LiveDemoLauncher({
   }
 
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
+    <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/70">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
           <Sparkles className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-xl font-semibold tracking-tight text-slate-950">
+          <h3 className="text-xl font-semibold tracking-tight text-stone-950">
             Try the live widget
           </h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-stone-500">
             Load the real embed snippet for {brandName} and use the floating
             widget that appears in the bottom corner.
           </p>
         </div>
       </div>
 
-      <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-950 p-4">
-        <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+      <div className="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-950 p-4">
+        <div className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-400">
           Embed Snippet
         </div>
-        <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-slate-100">
+        <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-stone-100">
           {embedCode}
         </pre>
       </div>
@@ -77,7 +77,7 @@ export function LiveDemoLauncher({
           type="button"
           onClick={launchDemo}
           disabled={status === "loading"}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
         >
           {status === "loading" ? (
             <>
@@ -92,7 +92,7 @@ export function LiveDemoLauncher({
           )}
         </button>
 
-        <div className="text-sm text-slate-500">
+        <div className="text-sm text-stone-500">
           The widget loads exactly the way it does on a client website.
         </div>
       </div>
@@ -101,7 +101,7 @@ export function LiveDemoLauncher({
         className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
           status === "error"
             ? "border-rose-200 bg-rose-50 text-rose-700"
-            : "border-slate-200 bg-slate-50 text-slate-600"
+            : "border-stone-200 bg-stone-50 text-stone-600"
         }`}
       >
         {status === "ready" ? (

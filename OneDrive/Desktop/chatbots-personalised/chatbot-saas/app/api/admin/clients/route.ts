@@ -14,7 +14,20 @@ const clientSchema = z.object({
     tone: z.string(),
     fallbackMessage: z.string(),
     logoUrl: z.string().url().optional().or(z.literal('')),
-    suggestedQuestions: z.array(z.string())
+    suggestedQuestions: z.array(z.string()),
+    allowedOrigins: z.array(z.string()).optional(),
+    leadCaptureEnabled: z.boolean().optional(),
+    leadCaptureMessage: z.string().optional(),
+    handoffWebhookUrl: z.string().url().optional().or(z.literal('')),
+    offlineMessage: z.string().optional(),
+    businessHours: z.object({
+      enabled: z.boolean(),
+      timezone: z.string(),
+      schedule: z.record(z.string(), z.object({
+        start: z.string(),
+        end: z.string()
+      }).nullable())
+    }).optional()
   })
 });
 
@@ -47,6 +60,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await db
       .from('clients')
       .insert({
+        user_id: user.id,
         name,
         slug,
         config: config as any // Cast for TS compilation

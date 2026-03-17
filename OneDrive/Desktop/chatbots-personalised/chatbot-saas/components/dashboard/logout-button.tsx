@@ -34,8 +34,8 @@ export function LogoutButton({
       disabled={isLoading}
       className={`${compact ? "inline-flex h-11 items-center justify-center" : "inline-flex h-12 w-full items-center justify-center"} gap-2 rounded-2xl px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-70 ${
         tone === "dark"
-          ? "border border-slate-700 bg-slate-900 text-slate-100 hover:border-slate-600 hover:bg-slate-800"
-          : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900"
+          ? "border border-stone-700 bg-stone-900 text-stone-100 hover:border-stone-600 hover:bg-stone-800"
+          : "border border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:text-stone-900"
       }`}
     >
       {isLoading ? (

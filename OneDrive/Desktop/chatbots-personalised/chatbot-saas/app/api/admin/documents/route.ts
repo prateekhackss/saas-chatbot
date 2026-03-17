@@ -34,6 +34,13 @@ export async function POST(req: NextRequest) {
 
     const { clientId, title, content, docType } = result.data;
 
+    const MAX_DOCUMENT_SIZE = 500_000; // 500KB of text (~125,000 tokens)
+    if (content.length > MAX_DOCUMENT_SIZE) {
+      return NextResponse.json({ 
+        error: `Document too large (${(content.length / 1000).toFixed(0)}KB). Maximum is 500KB.` 
+      }, { status: 400 });
+    }
+
     const db = supabase as any; // Bypass strict schema typings giving 'never' errors
 
     // 3. Verify client exists
@@ -100,6 +107,13 @@ export async function POST(req: NextRequest) {
 
     // 5. Split document into overlapping chunks (~500 tokens / 2000 chars)
     const chunks = splitIntoChunks(content, { chunkSize: 2000, chunkOverlap: 200 });
+    
+    const MAX_CHUNKS = 200;
+    if (chunks.length > MAX_CHUNKS) {
+      return NextResponse.json({ 
+        error: `Document generated ${chunks.length} chunks (max ${MAX_CHUNKS}). Please split into smaller documents.` 
+      }, { status: 400 });
+    }
     
     if (chunks.length === 0) {
       // Edge case: content was physically empty after trimming

@@ -11,8 +11,10 @@ import {
   FileText,
   Loader2,
   MessageSquare,
+  MessageSquareText,
   PencilLine,
   Save,
+  UserPlus,
   X,
 } from "lucide-react";
 
@@ -111,6 +113,31 @@ export function ClientDetailPanel({
 
   function removeQuestion(index: number) {
     setSuggestedQuestions((current) => current.filter((_, i) => i !== index));
+  }
+  
+  async function autofillFromAnalytics() {
+    try {
+      const res = await fetch(`/api/admin/analytics?clientId=${clientState.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.suggestedQuestionsFromData && data.suggestedQuestionsFromData.length > 0) {
+          setSuggestedQuestions(data.suggestedQuestionsFromData);
+          pushToast({
+            title: "Questions updated",
+            description: "Pulled top questions from recent conversations.",
+            variant: "success",
+          });
+        } else {
+           pushToast({
+            title: "No data found",
+            description: "No recent conversations exist to pull questions from.",
+            variant: "error",
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function handleCopy() {
@@ -273,27 +300,27 @@ export function ClientDetailPanel({
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+            <h1 className="text-3xl font-bold tracking-tight text-stone-950">
               {clientState.name}
             </h1>
             <span
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
                 clientState.is_active
                   ? "bg-emerald-100 text-emerald-700"
-                  : "bg-slate-200 text-slate-600"
+                  : "bg-stone-200 text-stone-600"
               }`}
             >
               <span
                 className={`h-2 w-2 rounded-full ${
-                  clientState.is_active ? "bg-emerald-500" : "bg-slate-400"
+                  clientState.is_active ? "bg-emerald-500" : "bg-stone-400"
                 }`}
               />
               {clientState.is_active ? "Active" : "Inactive"}
             </span>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-stone-500">
             <span>Slug: {clientState.slug}</span>
-            <span className="hidden text-slate-300 sm:inline">/</span>
+            <span className="hidden text-stone-300 sm:inline">/</span>
             <span>Brand: {clientState.config.brandName}</span>
           </div>
         </div>
@@ -301,7 +328,7 @@ export function ClientDetailPanel({
         <div className="flex flex-wrap gap-3">
           <Link
             href="/clients"
-            className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+            className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
           >
             Back to Clients
           </Link>
@@ -316,7 +343,7 @@ export function ClientDetailPanel({
                   setSuccessMessage(null);
                   setIsEditing(false);
                 }}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
               >
                 <X className="h-4 w-4" />
                 Cancel
@@ -325,7 +352,7 @@ export function ClientDetailPanel({
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-4 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
               >
                 {isSaving ? (
                   <>
@@ -348,7 +375,7 @@ export function ClientDetailPanel({
                 setSuccessMessage(null);
                 setIsEditing(true);
               }}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-4 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800"
             >
               <PencilLine className="h-4 w-4" />
               Edit Configuration
@@ -376,7 +403,7 @@ export function ClientDetailPanel({
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Knowledge Base"
           value={`${docCount} ${docCount === 1 ? "Document" : "Documents"}`}
@@ -386,9 +413,25 @@ export function ClientDetailPanel({
           icon={<FileText className="h-5 w-5" />}
         />
         <SummaryCard
-          title="Conversations"
-          value={`${convoCount} ${convoCount === 1 ? "Conversation" : "Conversations"}`}
-          description="Review how customers are interacting with the assistant."
+          title="Transcripts"
+          value="..."
+          description="A complete log of conversations."
+          href={`/clients/${clientState.id}/conversations`}
+          linkText="View Transcripts"
+          icon={<MessageSquareText className="h-5 w-5" />}
+        />
+        <SummaryCard
+          title="Leads"
+          value="..."
+          description="View captured emails."
+          href={`/clients/${clientState.id}/leads`}
+          linkText="Manage Leads"
+          icon={<UserPlus className="h-5 w-5" />}
+        />
+        <SummaryCard
+          title="Performance"
+          value={`${convoCount} ${convoCount === 1 ? "Chat" : "Chats"}`}
+          description="Review aggregate analytics and usage metrics."
           href={`/clients/${clientState.id}/analytics`}
           linkText="View Analytics"
           icon={<MessageSquare className="h-5 w-5" />}
@@ -396,20 +439,20 @@ export function ClientDetailPanel({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.9fr]">
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-stone-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              <h2 className="text-xl font-semibold tracking-tight text-stone-950">
                 Widget Configuration
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-stone-500">
                 Update branding, messaging, and the embed snippet for this client.
               </p>
             </div>
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? "Copied!" : "Copy Embed Code"}
@@ -481,7 +524,7 @@ export function ClientDetailPanel({
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Primary Color" required>
                 {isEditing ? (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4">
+                  <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                     <input
                       type="color"
                       value={primaryColor}
@@ -489,10 +532,10 @@ export function ClientDetailPanel({
                       className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                     />
                     <span
-                      className="h-4 w-4 rounded-full border border-slate-200"
+                      className="h-4 w-4 rounded-full border border-stone-200"
                       style={{ backgroundColor: primaryColor }}
                     />
-                    <span className="text-sm font-medium text-slate-600">
+                    <span className="text-sm font-medium text-stone-600">
                       {primaryColor}
                     </span>
                   </div>
@@ -503,7 +546,7 @@ export function ClientDetailPanel({
 
               <Field label="Text Color" required>
                 {isEditing ? (
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 px-4">
+                  <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                     <input
                       type="color"
                       value={textColor}
@@ -511,10 +554,10 @@ export function ClientDetailPanel({
                       className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                     />
                     <span
-                      className="h-4 w-4 rounded-full border border-slate-200"
+                      className="h-4 w-4 rounded-full border border-stone-200"
                       style={{ backgroundColor: textColor }}
                     />
-                    <span className="text-sm font-medium text-slate-600">
+                    <span className="text-sm font-medium text-stone-600">
                       {textColor}
                     </span>
                   </div>
@@ -592,27 +635,36 @@ export function ClientDetailPanel({
                       <button
                         type="button"
                         onClick={() => removeQuestion(index)}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-900"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
                         aria-label={`Remove question ${index + 1}`}
                       >
                         <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
-                  <button
-                    type="button"
-                    onClick={addQuestion}
-                    className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white hover:text-slate-950"
-                  >
-                    Add Question
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={addQuestion}
+                      className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:bg-white hover:text-stone-950"
+                    >
+                      Add Question
+                    </button>
+                    <button
+                      type="button"
+                      onClick={autofillFromAnalytics}
+                      className="inline-flex h-11 items-center justify-center rounded-2xl border border-dashed border-teal-200 bg-teal-50 px-4 text-sm font-medium text-teal-700 transition hover:border-teal-300 hover:bg-white hover:text-teal-900"
+                    >
+                      Auto-fill from analytics
+                    </button>
+                  </div>
                 </div>
               ) : clientState.config.suggestedQuestions.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {clientState.config.suggestedQuestions.map((question) => (
                     <span
                       key={question}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-600"
+                      className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-sm text-stone-600"
                     >
                       {question}
                     </span>
@@ -623,16 +675,16 @@ export function ClientDetailPanel({
               )}
             </Field>
 
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-950 p-4">
+            <div className="rounded-[1.5rem] border border-stone-200 bg-stone-950 p-4">
               <div className="mb-3">
-                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-400">
                   Embed Code
                 </div>
-                <p className="mt-1 text-sm text-slate-300">
+                <p className="mt-1 text-sm text-stone-300">
                   Copy and paste this snippet into the client&apos;s site.
                 </p>
               </div>
-              <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-slate-100">
+              <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-6 text-stone-100">
                 {embedCode}
               </pre>
             </div>
@@ -640,18 +692,18 @@ export function ClientDetailPanel({
         </section>
 
         <section className="space-y-6">
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+              <h2 className="text-xl font-semibold tracking-tight text-stone-950">
                 Live Preview
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-stone-500">
                 Keep this preview. It renders the hosted widget exactly as customers
                 will see it.
               </p>
             </div>
 
-            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div className="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
               <div
                 className="rounded-[1.25rem] px-4 py-4 text-sm shadow-sm"
                 style={{ backgroundColor: primaryColor, color: textColor }}
@@ -666,16 +718,16 @@ export function ClientDetailPanel({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 px-6 py-4">
-              <h3 className="text-base font-semibold tracking-tight text-slate-950">
+          <div className="overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
+            <div className="border-b border-stone-200 px-6 py-4">
+              <h3 className="text-base font-semibold tracking-tight text-stone-950">
                 Hosted Widget
               </h3>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-stone-500">
                 Preview URL: {safeHostUrl}/widget/{slug || clientState.slug}
               </p>
             </div>
-            <div className="relative h-[620px] bg-slate-100">
+            <div className="relative h-[620px] bg-stone-100">
               <iframe
                 key={slug || clientState.slug}
                 src={`${safeHostUrl}/widget/${slug || clientState.slug}`}
@@ -706,25 +758,25 @@ function SummaryCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-400">
             {title}
           </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">
             {value}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-stone-500">{description}</p>
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-100 text-stone-700">
           {icon}
         </div>
       </div>
 
       <Link
         href={href}
-        className="mt-6 inline-flex text-sm font-semibold text-sky-700 transition hover:text-sky-800"
+        className="mt-6 inline-flex text-sm font-semibold text-teal-700 transition hover:text-teal-800"
       >
         {linkText} {"->"}
       </Link>
@@ -745,12 +797,12 @@ function Field({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
+      <span className="flex items-center gap-2 text-sm font-medium text-stone-700">
         {label}
         {required ? <span className="text-rose-500">*</span> : null}
       </span>
       {children}
-      {hint ? <span className="block text-xs text-slate-500">{hint}</span> : null}
+      {hint ? <span className="block text-xs text-stone-500">{hint}</span> : null}
     </label>
   );
 }
@@ -766,7 +818,7 @@ function ReadValue({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 ${
+      className={`rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700 ${
         mono ? "font-mono" : ""
       } ${multiline ? "leading-6" : ""}`}
     >
@@ -777,9 +829,9 @@ function ReadValue({
 
 function ReadColorValue({ value }: { value: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+    <div className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">
       <span
-        className="h-4 w-4 rounded-full border border-slate-200"
+        className="h-4 w-4 rounded-full border border-stone-200"
         style={{ backgroundColor: value }}
       />
       <span className="font-mono">{value}</span>
@@ -788,7 +840,7 @@ function ReadColorValue({ value }: { value: string }) {
 }
 
 const inputClassName =
-  "h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60";
+  "h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60";
 
 const textareaClassName =
-  "w-full rounded-[1.5rem] border border-slate-200 px-4 py-3 text-sm leading-6 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60";
+  "w-full rounded-[1.5rem] border border-stone-200 px-4 py-3 text-sm leading-6 text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60";

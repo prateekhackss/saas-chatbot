@@ -269,14 +269,14 @@ export default function ClientDocumentsPage() {
     <div className="mx-auto max-w-6xl space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-400">
             Knowledge Base
           </p>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">
+            <h1 className="text-3xl font-bold tracking-tight text-stone-950">
               {client?.name ? `${client.name} Documents` : "Knowledge Base"}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-stone-500">
               {`Knowledge Base: ${totalChunks} chunks from ${documents.length} ${
                 documents.length === 1 ? "document" : "documents"
               }`}
@@ -285,7 +285,7 @@ export default function ClientDocumentsPage() {
         </div>
         <Link
           href={`/clients/${clientId}`}
-          className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+          className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
         >
           Back to Client
         </Link>
@@ -310,12 +310,12 @@ export default function ClientDocumentsPage() {
         </div>
       )}
 
-      <section className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+          <h2 className="text-xl font-semibold tracking-tight text-stone-950">
             Upload New Document
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-stone-500">
             Paste your FAQ, product descriptions, company policies, or any text
             content. The AI will learn from this to answer customer questions.
           </p>
@@ -328,7 +328,7 @@ export default function ClientDocumentsPage() {
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 placeholder="Document Title (e.g. Return Policy)"
-                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
               />
             </Field>
 
@@ -336,7 +336,7 @@ export default function ClientDocumentsPage() {
               <select
                 value={docType}
                 onChange={(event) => setDocType(event.target.value as DocumentType)}
-                className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
               >
                 <option value="faq">FAQ</option>
                 <option value="product">Product</option>
@@ -353,20 +353,20 @@ export default function ClientDocumentsPage() {
               onChange={(event) => setContent(event.target.value)}
               rows={14}
               placeholder="Paste raw text content here..."
-              className="w-full rounded-[1.5rem] border border-slate-200 px-4 py-4 font-mono text-sm leading-6 text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+              className="w-full rounded-[1.5rem] border border-stone-200 px-4 py-4 font-mono text-sm leading-6 text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
             />
-            <div className="mt-2 text-right text-xs text-slate-500">
+            <div className="mt-2 text-right text-xs text-stone-500">
               {content.length.toLocaleString()} characters
             </div>
           </Field>
 
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                <div className="text-sm font-medium text-slate-900">
+                <div className="text-sm font-medium text-stone-900">
                   Ready to process and train the AI
                 </div>
-                <div className="text-sm text-slate-500">
+                <div className="text-sm text-stone-500">
                   {isSubmitting
                     ? progressMessage
                     : "We’ll chunk the document, generate embeddings, and store vectors automatically."}
@@ -375,7 +375,7 @@ export default function ClientDocumentsPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
               >
                 {isSubmitting ? (
                   <>
@@ -389,42 +389,42 @@ export default function ClientDocumentsPage() {
             </div>
 
             {isSubmitting ? (
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-200">
-                <div className="h-full w-2/3 animate-pulse rounded-full bg-sky-600" />
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-stone-200">
+                <div className="h-full w-2/3 animate-pulse rounded-full bg-teal-600" />
               </div>
             ) : null}
           </div>
         </form>
       </section>
 
-      <section className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+      <section className="rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
+        <div className="border-b border-stone-200 px-6 py-5">
+          <h2 className="text-xl font-semibold tracking-tight text-stone-950">
             Trained Documents
           </h2>
         </div>
 
         {isLoadingData ? (
-          <div className="flex items-center justify-center px-6 py-16 text-sm text-slate-500">
+          <div className="flex items-center justify-center px-6 py-16 text-sm text-stone-500">
             <Loader2 className="mr-3 h-4 w-4 animate-spin" />
             Loading documents...
           </div>
         ) : documents.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 text-stone-600">
               <FileText className="h-7 w-7" />
             </div>
-            <h3 className="mt-5 text-lg font-semibold tracking-tight text-slate-950">
+            <h3 className="mt-5 text-lg font-semibold tracking-tight text-stone-950">
               No documents yet
             </h3>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-stone-500">
               Upload your first document above to start training the AI.
             </p>
           </div>
         ) : (
           <>
             <div className="hidden md:block">
-              <div className="grid grid-cols-[minmax(0,2fr)_110px_110px_110px_140px_110px] gap-4 border-b border-slate-200 bg-slate-50/80 px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <div className="grid grid-cols-[minmax(0,2fr)_110px_110px_110px_140px_110px] gap-4 border-b border-stone-200 bg-stone-50/80 px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
                 <span>Title</span>
                 <span>Type</span>
                 <span>Characters</span>
@@ -432,31 +432,31 @@ export default function ClientDocumentsPage() {
                 <span>Created</span>
                 <span className="text-right">Action</span>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-stone-100">
                 {documents.map((document) => (
                   <div
                     key={document.id}
                     className={`grid grid-cols-[minmax(0,2fr)_110px_110px_110px_140px_110px] items-center gap-4 px-6 py-5 transition ${
                       highlightedDocumentId === document.id
                         ? "bg-emerald-50"
-                        : "hover:bg-slate-50/80"
+                        : "hover:bg-stone-50/80"
                     }`}
                   >
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-950">
+                      <div className="truncate text-sm font-semibold text-stone-950">
                         {document.title}
                       </div>
                     </div>
-                    <div className="text-sm capitalize text-slate-600">
+                    <div className="text-sm capitalize text-stone-600">
                       {document.doc_type}
                     </div>
-                    <div className="text-sm text-slate-600">
+                    <div className="text-sm text-stone-600">
                       {document.char_count.toLocaleString()}
                     </div>
-                    <div className="text-sm text-slate-600">
+                    <div className="text-sm text-stone-600">
                       {document.chunk_count.toLocaleString()}
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-stone-500">
                       {formatDate(document.created_at)}
                     </div>
                     <div className="text-right">
@@ -486,15 +486,15 @@ export default function ClientDocumentsPage() {
                   className={`rounded-[1.5rem] border p-5 transition ${
                     highlightedDocumentId === document.id
                       ? "border-emerald-200 bg-emerald-50"
-                      : "border-slate-200 bg-white"
+                      : "border-stone-200 bg-white"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <h3 className="truncate text-base font-semibold tracking-tight text-slate-950">
+                      <h3 className="truncate text-base font-semibold tracking-tight text-stone-950">
                         {document.title}
                       </h3>
-                      <p className="mt-1 text-sm capitalize text-slate-500">
+                      <p className="mt-1 text-sm capitalize text-stone-500">
                         {document.doc_type}
                       </p>
                     </div>
@@ -562,7 +562,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-700">
+      <span className="mb-2 flex items-center gap-2 text-sm font-medium text-stone-700">
         {label}
         {required ? <span className="text-rose-500">*</span> : null}
       </span>
@@ -579,11 +579,11 @@ function SummaryTile({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3">
-      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
+    <div className="rounded-2xl border border-stone-200 bg-stone-50 px-3 py-3">
+      <div className="text-[11px] font-medium uppercase tracking-[0.18em] text-stone-400">
         {label}
       </div>
-      <div className="mt-2 text-sm font-semibold text-slate-900">{value}</div>
+      <div className="mt-2 text-sm font-semibold text-stone-900">{value}</div>
     </div>
   );
 }

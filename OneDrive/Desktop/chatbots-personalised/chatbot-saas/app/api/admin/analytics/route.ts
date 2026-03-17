@@ -93,12 +93,16 @@ export async function GET(req: NextRequest) {
     const avgMessagesPerConversation = totalConversations > 0 
       ? Number((totalMessages / totalConversations).toFixed(1)) 
       : 0;
+      
+    // Create direct top 3 string list for easy extraction
+    const suggestedQuestionsFromData = sortedQuestions.slice(0, 3).map(sq => sq.question);
 
     return NextResponse.json({
       totalConversations,
       totalMessages,
       avgMessagesPerConversation,
       topQuestions: sortedQuestions,
+      suggestedQuestionsFromData,
       dailyVolume: formattedDailyVolume
     });
 

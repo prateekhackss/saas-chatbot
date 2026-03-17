@@ -106,7 +106,7 @@ function ToastCard({
     ) : toast.variant === "error" ? (
       <AlertCircle className="h-5 w-5 text-rose-600" />
     ) : (
-      <Info className="h-5 w-5 text-sky-600" />
+      <Info className="h-5 w-5 text-teal-600" />
     );
 
   const palette =
@@ -114,20 +114,20 @@ function ToastCard({
       ? "border-emerald-200 bg-emerald-50/95"
       : toast.variant === "error"
         ? "border-rose-200 bg-rose-50/95"
-        : "border-sky-200 bg-white/95";
+        : "border-teal-200 bg-white/95";
 
   return (
     <div
-      className={`pointer-events-auto rounded-[1.5rem] border px-4 py-4 shadow-lg shadow-slate-900/10 backdrop-blur ${palette}`}
+      className={`pointer-events-auto rounded-[1.5rem] border px-4 py-4 shadow-lg shadow-stone-900/10 backdrop-blur ${palette}`}
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 shrink-0">{icon}</div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold tracking-tight text-slate-950">
+          <p className="text-sm font-semibold tracking-tight text-stone-950">
             {toast.title}
           </p>
           {toast.description ? (
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-1 text-sm leading-6 text-stone-600">
               {toast.description}
             </p>
           ) : null}
@@ -135,7 +135,7 @@ function ToastCard({
         <button
           type="button"
           onClick={onDismiss}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/70 hover:text-slate-600"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-stone-400 transition hover:bg-white/70 hover:text-stone-600"
           aria-label="Dismiss notification"
         >
           <X className="h-4 w-4" />

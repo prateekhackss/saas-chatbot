@@ -15,6 +15,26 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          light: "var(--primary-light)",
+          muted: "var(--primary-muted)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          hover: "var(--accent-hover)",
+          light: "var(--accent-light)",
+          muted: "var(--accent-muted)",
+        },
+        surface: {
+          DEFAULT: "var(--surface)",
+          raised: "var(--surface-raised)",
+        },
+      },
+      borderRadius: {
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
       },
       keyframes: {
         blob: {

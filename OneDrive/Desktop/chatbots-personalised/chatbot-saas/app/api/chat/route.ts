@@ -7,10 +7,24 @@ import { ClientConfig } from '@/types/database';
 // Opt out of caching; this must be dynamic for real-time chat
 export const dynamic = 'force-dynamic';
 
+// WARNING: This in-memory rate limiter does NOT persist across serverless invocations.
+// It only works within a single warm instance. For production, replace with:
+// import { Ratelimit } from '@upstash/ratelimit'
+// import { Redis } from '@upstash/redis'
+// const ratelimit = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(20, '60 s') })
 // Lightweight In-Memory Rate Limiter (Note: In a multi-region Edge deployment, using Redis/Upstash is preferred)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const RATE_LIMIT = 20; // max requests per window
 const WINDOW_MS = 60 * 1000; // 1 minute window
+
+function sanitizeUserInput(input: string): string {
+  // Strip common injection patterns but keep the message readable
+  return input
+    .replace(/\b(ignore|forget|disregard)\s+(all\s+)?(previous|above|prior)\s+(instructions|prompts|rules)\b/gi, '[filtered]')
+    .replace(/\b(you are now|act as|pretend to be|new instructions?:)\b/gi, '[filtered]')
+    .replace(/\b(system\s*prompt|<\/?system>|<\/?prompt>)\b/gi, '[filtered]')
+    .trim();
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,6 +76,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const MAX_HISTORY_MESSAGES = 20;
+    if (safeHistory.length > MAX_HISTORY_MESSAGES) {
+      safeHistory = safeHistory.slice(-MAX_HISTORY_MESSAGES);
+    }
+
+    const MAX_MESSAGE_LENGTH = 2000; // ~500 tokens
+    if (latestUserMessage.length > MAX_MESSAGE_LENGTH) {
+      return NextResponse.json({ error: 'Message too long. Please keep it under 2000 characters.' }, { status: 400 });
+    }
+
+    latestUserMessage = sanitizeUserInput(latestUserMessage);
+
     if (!clientSlug || !sessionId || !latestUserMessage) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
@@ -94,24 +120,35 @@ export async function POST(req: NextRequest) {
     // Build the strict instructional prompt with the injected chunks
     const systemPrompt = buildSystemPrompt(clientConfig, relevantChunks);
 
-    // 4. Record the user's message asynchronously to prevent blocking the stream
-    // We update the JSONB 'messages' array and increment the count
-    const newMessages = [
-      ...safeHistory,
-      { role: 'user', content: latestUserMessage, timestamp: new Date().toISOString() }
-    ];
-
-    saveConversationAsync(supabase, clientId, sessionId, newMessages);
-
-    // 5. RAG Phase 3: Generation (Streaming)
+    // 4. RAG Phase 3: Generation (Streaming)
     // Send to Groq Llama 3.3 and immediately stream the response back
     const result = await streamChatResponse(systemPrompt, safeHistory, latestUserMessage, async (text: string) => {
         // onFinish handler
+        const needsHandoff = text.includes('[HANDOFF_NEEDED]');
+        const cleanText = text.replace(/\[HANDOFF_NEEDED\]/g, '').trim();
+
         const finalMessages = [
-           ...newMessages,
-           { role: 'assistant', content: text, timestamp: new Date().toISOString() }
+           ...safeHistory,
+           { role: 'user', content: latestUserMessage, timestamp: new Date().toISOString() },
+           { role: 'assistant', content: cleanText, timestamp: new Date().toISOString() }
         ];
-        await saveConversationAsync(supabase, clientId, sessionId, finalMessages);
+        
+        // Rough estimation: 1 token ≈ 4 characters
+        const estimatedTokens = Math.ceil((latestUserMessage.length + cleanText.length) / 4);
+        
+        // Pass the negated handoff flag to automatically resolve or block resolutions
+        await saveConversationAsync(supabase, clientId, sessionId, finalMessages, !needsHandoff, estimatedTokens);
+
+        // Fire and forget escalation hook
+        if (needsHandoff && clientConfig.handoffWebhookUrl) {
+           fireHandoffWebhook(clientConfig.handoffWebhookUrl, {
+             clientSlug,
+             sessionId,
+             question: latestUserMessage,
+             botResponse: cleanText,
+             timestamp: new Date().toISOString(),
+           }).catch(err => console.error('Webhook error:', err));
+        }
     });
 
     // The Vercel AI SDK provides `toDataStreamResponse()` which easily hooks into Next.js App Router
@@ -158,35 +195,42 @@ function normalizeMessages(input: unknown): ChatHistoryMessage[] {
  * We "upsert" based on sessionId. If it's a new session, it creates a new chat history.
  * If the session exists, it appends the messages object.
  */
-async function saveConversationAsync(supabase: any, clientId: string, sessionId: string, messages: any[]) {
-  // We use standard Postgres upsert. Since `session_id` is indexed, we could theoretically use it, 
-  // but let's query first to see if it exists since we didn't add a UNIQUE constraint to session_id 
-  // (a single user might have multiple sessions over time, but for active chat we'll match on the most recent active session)
-  
-  // Actually, standard behavior for this schema: Find the existing session, or create it.
-  const { data: existing } = await supabase
+async function saveConversationAsync(supabase: any, clientId: string, sessionId: string, messages: any[], resolved: boolean = true, newTokens: number = 0) {
+  // To keep it simple and stateless during concurrent streams, we fetch current tokens, add newTokens, and upsert
+  const { data: current } = await supabase
     .from('conversations')
-    .select('id')
+    .select('estimated_tokens')
     .eq('session_id', sessionId)
-    .single();
-
-  if (existing) {
-    await supabase
-      .from('conversations')
-      .update({ 
-        messages: messages,
-        message_count: messages.length,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', existing.id);
-  } else {
-    await supabase
-      .from('conversations')
-      .insert({
-        client_id: clientId,
-        session_id: sessionId,
-        messages: messages,
-        message_count: messages.length
-      });
+    .maybeSingle();
+    
+  let totalTokens = newTokens;
+  if (current && typeof current.estimated_tokens === 'number') {
+    totalTokens += current.estimated_tokens;
   }
+
+  const { error } = await supabase
+    .from('conversations')
+    .upsert({
+      client_id: clientId,
+      session_id: sessionId,
+      messages: messages,
+      message_count: messages.length,
+      estimated_tokens: totalTokens,
+      resolved: resolved,
+      updated_at: new Date().toISOString()
+    }, { 
+      onConflict: 'session_id' 
+    });
+  
+  if (error) {
+    console.error('Failed to save conversation:', error);
+  }
+}
+
+async function fireHandoffWebhook(url: string, payload: any) {
+  await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 }
