@@ -136,9 +136,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
   const welcomeMessage =
     config.welcomeMessage || `Hi! I'm the ${brandName} AI assistant. How can I help you?`;
 
-  const handleSuggestedQuestionClick = (question: string) => {
-    append({ role: "user", content: question });
-  };
+
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
     (useChat({
@@ -148,6 +146,10 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
         sessionId,
       },
     } as any) as any);
+
+  const handleSuggestedQuestionClick = (question: string) => {
+    append({ role: "user", content: question });
+  };
 
   const welcomeMsg = {
     id: "welcome",
@@ -353,7 +355,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
                 placeholder="Type your message..."
                 className="w-full rounded-full border border-gray-200 bg-gray-50/50 py-3.5 pl-5 pr-12 text-[14px] text-gray-900 transition-all placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-opacity-20 disabled:opacity-50"
                 style={
-                  input
+                  (input || "").trim()
                     ? ({
                         "--tw-ring-color": primaryColor,
                         borderColor: primaryColor,
@@ -363,7 +365,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !(input || "").trim()}
                 className="absolute right-1.5 flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ backgroundColor: primaryColor }}
               >
