@@ -18,6 +18,10 @@ BEGIN
     END IF;
 END $$;
 
+-- Safety precaution: Delete any remaining orphaned clients (created before auth existed) 
+-- so the NOT NULL constraint doesn't throw an error and break the entire migration.
+DELETE FROM clients WHERE user_id IS NULL;
+
 -- Make it NOT NULL for new rows going forward
 ALTER TABLE clients ALTER COLUMN user_id SET NOT NULL;
 

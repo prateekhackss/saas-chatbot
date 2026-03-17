@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Client slug already exists' }, { status: 409 });
       }
       console.error('Database error:', error);
-      return NextResponse.json({ error: 'Failed to create client' }, { status: 500 });
+      return NextResponse.json({ error: `Failed: ${error.message} ${error.details || ''}` }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Client created successfully', id: data.id }, { status: 201 });
