@@ -152,6 +152,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
           id: "welcome",
           role: "assistant",
           content: welcomeMessage,
+          parts: [{ type: "text", text: welcomeMessage }],
         },
       ],
     } as any) as any);
