@@ -85,27 +85,27 @@ function isWithinBusinessHours(config: ClientConfig): boolean {
 }
 
 function ChatInterface({ slug, config }: ChatInterfaceProps) {
-  const [sessionId] = useState(() => {
-    const storageKey = `nexuschat-session-${slug}`;
-    if (typeof window !== 'undefined') {
-      const stored = window.localStorage.getItem(storageKey);
-      if (stored) return stored;
-      const newId = crypto.randomUUID();
-      window.localStorage.setItem(storageKey, newId);
-      return newId;
-    }
-    return crypto.randomUUID();
-  });
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const [leadCaptured, setLeadCaptured] = useState(false);
   const isOnline = isWithinBusinessHours(config);
-  const [leadCaptured, setLeadCaptured] = useState(() => {
-    if (typeof window !== 'undefined') {
-       return window.localStorage.getItem(`nexuschat-lead-${slug}`) === 'captured';
-    }
-    return false;
-  });
   const [leadFormState, setLeadFormState] = useState({ name: '', email: '', submitting: false, error: '' });
+
+  useEffect(() => {
+    // 1. Initialize or load Session ID
+    const storageKey = `nexuschat-session-${slug}`;
+    let currentSessionId = window.localStorage.getItem(storageKey);
+    if (!currentSessionId) {
+      currentSessionId = crypto.randomUUID();
+      window.localStorage.setItem(storageKey, currentSessionId);
+    }
+    setSessionId(currentSessionId);
+
+    // 2. Load Lead Capture state
+    if (window.localStorage.getItem(`nexuschat-lead-${slug}`) === 'captured') {
+      setLeadCaptured(true);
+    }
+  }, [slug]);
 
   const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +161,14 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  if (!sessionId) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <Loader2 className="h-6 w-6 animate-spin text-teal-600/50" />
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-auto flex h-screen w-full flex-col overflow-hidden border-0 bg-white font-sans sm:rounded-2xl sm:border sm:border-gray-200 sm:shadow-2xl">
