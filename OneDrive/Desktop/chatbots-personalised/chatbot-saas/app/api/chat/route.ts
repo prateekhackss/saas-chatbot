@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getRelevantContext, buildSystemPrompt } from '@/lib/ai/rag';
+import { embedText } from '@/lib/ai/embeddings';
 import { streamChatResponse, type ChatHistoryMessage } from '@/lib/ai/groq';
 import { ClientConfig } from '@/types/database';
 
 // Opt out of caching; this must be dynamic for real-time chat
 export const dynamic = 'force-dynamic';
+
+// Compile to Vercel Edge Runtime to eliminate Node.js cold-start latency
+export const runtime = 'edge';
 
 // WARNING: This in-memory rate limiter does NOT persist across serverless invocations.
 // It only works within a single warm instance. For production, replace with:
@@ -96,7 +100,14 @@ export async function POST(req: NextRequest) {
     // to the sensitive `clients` config or `document_chunks`. We act as a trusted middleman.
     const supabase = createAdminClient();
 
-    // 1. Validate Client & Get Config
+    // 0. Parallelize Network Requests
+    // Immediately trigger the Jina Embeddings API network call so it calculates concurrently with the Database fetch
+    const embeddingPromise = embedText(latestUserMessage).catch(err => {
+      console.error("Embedding generation failed:", err);
+      return null;
+    });
+
+    // 1. Validate Client & Get Config (Runs concurrently)
     const { data: rawClient, error: clientError } = await supabase
       .from('clients')
       .select('id, config, is_active')
@@ -113,8 +124,13 @@ export async function POST(req: NextRequest) {
     const clientConfig = client.config as ClientConfig;
 
     // 2. RAG Phase 1: Retrieval
-    // Get the most relevant chunks based on the user's current message
-    const relevantChunks = await getRelevantContext(clientId, latestUserMessage);
+    // Wait for the embedding promise to finish before querying vectors
+    const queryEmbedding = await embeddingPromise;
+    if (!queryEmbedding) {
+      return NextResponse.json({ error: 'Failed to generate query embeddings' }, { status: 500 });
+    }
+
+    const relevantChunks = await getRelevantContext(clientId, queryEmbedding);
 
     // 3. RAG Phase 2: Augmentation
     // Build the strict instructional prompt with the injected chunks

@@ -35,11 +35,11 @@ export async function streamChatResponse(
     { role: 'user', content: userMessage }
   ];
 
-  // We use Llama 3.3 70B Versatile for high logic tasks like RAG
+  // We use Llama 3.1 8B Instant for incredibly low-latency and high-speed RAG output
   const streamConfig: any = {
-    model: groq('llama-3.3-70b-versatile'),
+    model: groq('llama-3.1-8b-instant'),
     messages: messages as any,
-    temperature: 0.3, // Factual, as requested
+    temperature: 0.1, // Factual and fast, as requested
     maxTokens: 500, // Prevent runaway generation
     onFinish: async (event: any) => {
       // If the caller provided an onFinish handler, execute it with the final generated text

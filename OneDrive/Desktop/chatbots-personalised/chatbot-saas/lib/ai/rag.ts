@@ -17,12 +17,8 @@ export interface RagResult {
  * 1. Embeds the user's question.
  * 2. Searches Supabase via vector similarity for the most relevant document chunks.
  */
-export async function getRelevantContext(clientId: string, userMessage: string): Promise<RagResult['relevantChunks']> {
-  // 1. Convert user's question to a mathematical vector
-  // We use 'retrieval.query' task for the question
-  const queryEmbedding = await embedText(userMessage, 'retrieval.query');
-
-  // 2. Query Supabase for similar chunks
+export async function getRelevantContext(clientId: string, queryEmbedding: number[]): Promise<RagResult['relevantChunks']> {
+  // 1. Query Supabase for similar chunks
   // We must use the admin client here because the public API shouldn't have direct DB read access to chunks
   const supabase = createAdminClient() as any;
 
