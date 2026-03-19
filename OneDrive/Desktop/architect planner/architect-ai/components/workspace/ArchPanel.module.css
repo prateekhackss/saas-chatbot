@@ -1,0 +1,666 @@
+/* ArchPanel — right panel: diagram + tabbed sections */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+/* ── Panel header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.exportBtn {
+  padding: 5px 10px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.exportBtn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-white);
+}
+
+/* ── Diagram area (hero — takes most space) ── */
+.diagramSection {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+  min-height: 300px;
+  flex-shrink: 0;
+  animation: fadeIn 0.3s;
+}
+
+.diagramEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+/* ── Tabbed sections below diagram ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--text-muted);
+}
+
+.tabActive {
+  color: var(--text-white);
+  border-bottom-color: var(--accent-speed);
+}
+
+.tabCount {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+/* ── Tab content ── */
+.tabContent {
+  flex: 1;
+  animation: fadeIn 0.2s;
+}
+
+/* ── Component cards (inside tab) ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-3);
+}
+
+.card {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: border-color 0.2s;
+}
+.card:hover {
+  border-color: var(--border-medium);
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-white);
+  margin-bottom: 4px;
+}
+
+.cardDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-2);
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.badgeType {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+}
+
+.badgeTech {
+  background: rgba(52,211,153,0.08);
+  color: var(--accent-speed);
+  font-family: var(--font-mono);
+}
+
+/* ── Database type colors ── */
+.badgeSql { background: rgba(96,165,250,0.12); color: #60A5FA; }
+.badgeNosql { background: rgba(251,191,36,0.12); color: #FBBf24; }
+.badgeCache { background: rgba(52,211,153,0.12); color: #34D399; }
+.badgeSearch { background: rgba(167,139,250,0.12); color: #A78BFA; }
+.badgeGraph { background: rgba(244,63,94,0.12); color: #F43F5E; }
+
+/* ── API table ── */
+.apiTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.apiTable th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-medium);
+}
+
+.apiTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-gray);
+}
+
+.methodBadge {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.methodGet { background: rgba(52,211,153,0.12); color: #34D399; }
+.methodPost { background: rgba(96,165,250,0.12); color: #60A5FA; }
+.methodPut { background: rgba(251,191,36,0.12); color: #FBBf24; }
+.methodDelete { background: rgba(244,63,94,0.12); color: #F43F5E; }
+.methodPatch { background: rgba(167,139,250,0.12); color: #A78BFA; }
+
+.apiPath {
+  font-family: var(--font-mono);
+  color: var(--text-white);
+  font-weight: 500;
+}
+
+/* ── Tech stack chips ── */
+.techGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.techChip {
+  padding: 10px 14px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.techName { font-size: 13px; font-weight: 600; color: var(--text-white); }
+.techCategory { font-size: 10px; color: var(--accent-speed); text-transform: uppercase; letter-spacing: 0.04em; }
+.techJust { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Scalability cards ── */
+.scaleCard {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.scaleConcern { font-size: 14px; font-weight: 600; color: var(--text-white); margin-bottom: 4px; }
+.scaleStrategy {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(251,191,36,0.1);
+  color: var(--accent-usability);
+  display: inline-block;
+  margin-bottom: var(--space-2);
+}
+.scaleExplanation { font-size: 12px; color: var(--text-gray); line-height: 1.5; }
+
+/* ── Tradeoff cards ── */
+.tradeoffCard {
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.tradeoffDecision { font-size: 14px; font-weight: 600; color: var(--text-white); margin-bottom: var(--space-3); }
+
+.tradeoffCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.tradeoffLabel { font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+.tradeoffProsLabel { color: var(--accent-speed); }
+.tradeoffConsLabel { color: var(--accent-workflow); }
+
+.tradeoffList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tradeoffList li {
+  font-size: 11px;
+  color: var(--text-gray);
+  padding: 2px 0;
+  line-height: 1.4;
+}
+.tradeoffList li::before { content: '→ '; color: var(--text-dim); }
+
+.tradeoffReason {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── Empty state ── */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8);
+  min-height: 400px;
+}
+
+.emptyIcon { font-size: 40px; margin-bottom: var(--space-3); opacity: 0.3; }
+.emptyTitle { font-size: 16px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+.emptyDesc { font-size: 13px; color: var(--text-dim); }
+
+/* ══════════════════════════════════
+   MODE TOGGLE (Developer / Student)
+   ══════════════════════════════════ */
+.modeToggle {
+  display: flex;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.modeBtn {
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modeBtn:hover { color: var(--text-muted); }
+
+.modeBtnActive {
+  background: var(--bg-surface);
+  color: var(--text-white);
+}
+
+/* ── Student summary block ── */
+.studentSummary {
+  background: rgba(251,191,36,0.05);
+  border: 1px solid rgba(251,191,36,0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.studentSummaryLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-usability);
+  margin-bottom: var(--space-2);
+}
+
+.studentSummaryText {
+  font-size: 14px;
+  color: var(--text-gray);
+  line-height: 1.6;
+  margin-bottom: var(--space-2);
+}
+
+.studentSummaryHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.studentSummaryHint strong {
+  color: var(--text-white);
+}
+
+/* ── Student extra blocks inside cards ── */
+.studentExtra {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px dashed rgba(251,191,36,0.2);
+}
+
+.studentBlock {
+  margin-bottom: var(--space-2);
+}
+
+.studentLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-usability);
+  margin-bottom: 2px;
+}
+
+.studentBlock p {
+  font-size: 12px;
+  color: var(--text-gray);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Student info banners ── */
+.studentBanner {
+  background: rgba(251,191,36,0.05);
+  border: 1px solid rgba(251,191,36,0.12);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--text-gray);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.studentBanner strong {
+  color: var(--text-white);
+}
+
+/* ── COST ESTIMATE & SLIDERS ── */
+.estimateBtn {
+  background: rgba(52,211,153, 0.1);
+  color: var(--accent-speed);
+  border: 1px solid rgba(52,211,153, 0.3);
+  margin-right: var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.estimateBtn:hover:not(:disabled) {
+  background: rgba(52,211,153, 0.2);
+  transform: translateY(-1px);
+}
+
+.estimateBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── TERRAFORM ARCHITECTURE BUTTON & TAB ── */
+.terraformBtn {
+  background: rgba(132, 79, 186, 0.1);
+  color: #c090f4; /* HashiCorp purple tint */
+  border: 1px solid rgba(132, 79, 186, 0.3);
+  margin-right: var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.terraformBtn:hover:not(:disabled) {
+  background: rgba(132, 79, 186, 0.25);
+  transform: translateY(-1px);
+}
+
+.terraformBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.terraformTab {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: var(--space-6);
+  background: #0d1117;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-2);
+}
+
+.tfHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-medium);
+  padding-bottom: var(--space-3);
+}
+
+.tfHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 16px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: #e6edf3;
+}
+
+.tfIcon {
+  font-size: 20px;
+}
+
+.tfDownloadBtn {
+  padding: 6px 12px;
+  background: rgba(132, 79, 186, 0.15);
+  color: #c090f4;
+  border: 1px solid rgba(132, 79, 186, 0.4);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tfDownloadBtn:hover {
+  background: rgba(132, 79, 186, 0.3);
+  color: #fff;
+}
+
+.tfCode {
+  color: #e6edf3;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  padding: var(--space-4);
+  background: #161b22;
+  border-radius: var(--radius-lg);
+  border: 1px solid #30363d;
+}
+
+.costTab {
+  animation: fadeIn 0.3s ease;
+  padding: var(--space-4);
+}
+
+.costControls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  margin-bottom: var(--space-8);
+  padding-bottom: var(--space-8);
+  border-bottom: 1px dashed var(--border-medium);
+}
+
+.sliderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sliderLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-white);
+}
+
+.sliderValue {
+  font-family: var(--font-mono);
+  color: var(--accent-speed);
+  background: rgba(52,211,153,0.1);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-full);
+  outline: none;
+  border: 1px solid var(--border-subtle);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-speed);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(52,211,153,0.5);
+  border: 2px solid #000;
+  transition: transform 0.1s;
+}
+
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-speed);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(52,211,153,0.5);
+  border: 2px solid #000;
+  transition: transform 0.1s;
+}
+
+.costTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+.costTotalLabel {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.costTotalValue {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--text-white);
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 40px rgba(52,211,153,0.2);
+}
+
+.costCurrency {
+  font-size: 20px;
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.costComponent {
+  font-weight: 600;
+  color: var(--text-white);
+}
+
+.scaleIcon {
+  margin-right: var(--space-2);
+  cursor: help;
+  font-size: 16px;
+}
+
+.costDesc {
+  color: var(--text-gray);
+}
+
+.costValue {
+  font-family: var(--font-mono);
+  color: var(--text-white);
+  text-align: right;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .costControls {
+    grid-template-columns: 1fr;
+  }
+}
