@@ -13,6 +13,7 @@ import {
 
 import { LiveDemoLauncher } from "@/components/landing/live-demo-launcher";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { Logo } from "@/components/ui/logo";
 
 type DemoClient = {
   slug: string;
@@ -125,16 +126,8 @@ export async function MarketingLandingPage() {
     <div className="min-h-screen bg-[linear-gradient(180deg,_#FAFAF9_0%,_#FFFFFF_36%,_#F5F5F4_100%)] text-stone-950">
       <header className="sticky top-0 z-50 border-b border-white/60 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-stone-950 text-white">
-              <Bot className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-tight text-stone-950">
-                NexusChat
-              </div>
-              <div className="text-xs text-stone-500">AI support widgets</div>
-            </div>
+          <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105">
+            <Logo tone="light" size="md" />
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-stone-600 md:flex">
@@ -169,27 +162,27 @@ export async function MarketingLandingPage() {
       <main>
         <section className="relative overflow-hidden px-4 pb-24 pt-20 sm:px-6 lg:px-8 lg:pb-28 lg:pt-24">
           <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[36rem]">
-            <div className="absolute left-1/2 top-0 h-80 w-80 -transtone-x-[140%] rounded-full bg-teal-200/30 blur-3xl animate-blob" />
-            <div className="absolute left-1/2 top-10 h-96 w-96 -transtone-x-[5%] rounded-full bg-amber-200/20 blur-3xl animate-blob animation-delay-2000" />
-            <div className="absolute right-[12%] top-16 h-80 w-80 rounded-full bg-emerald-200/25 blur-3xl animate-blob" />
+            <div className="absolute left-1/2 top-0 h-80 w-80 -translate-x-[140%] rounded-full bg-rose-200/30 blur-3xl animate-blob" />
+            <div className="absolute left-1/2 top-10 h-96 w-96 -translate-x-[5%] rounded-full bg-stone-200/20 blur-3xl animate-blob animation-delay-2000" />
+            <div className="absolute right-[12%] top-16 h-80 w-80 rounded-full bg-red-200/25 blur-3xl animate-blob animation-delay-4000" />
           </div>
 
           <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
             <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-medium text-teal-900">
-                <Sparkles className="h-4 w-4" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-900 animate-fade-in-down">
+                <Sparkles className="h-4 w-4 text-rose-500 animate-pulse" />
                 Premium AI chatbot setup for modern support teams
               </div>
-              <h1 className="mt-8 text-5xl font-semibold tracking-tight text-stone-950 sm:text-6xl lg:text-7xl">
+              <h1 className="mt-8 text-5xl font-semibold tracking-tight text-stone-950 sm:text-6xl lg:text-7xl animate-fade-in-up animation-delay-150">
                 Deploy a branded support bot that feels like part of your business.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600">
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-stone-600 animate-fade-in-up animation-delay-300">
                 NexusChat gives you a polished AI support widget trained on your
                 actual business knowledge, with onboarding, embed setup, and a
                 dashboard your team can manage without touching the AI backend.
               </p>
 
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row animate-fade-in-up animation-delay-450">
                 <Link
                   href="/signup"
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-6 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800"
@@ -205,7 +198,7 @@ export async function MarketingLandingPage() {
                 </Link>
               </div>
 
-              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+              <div className="mt-10 grid gap-4 sm:grid-cols-3 animate-fade-in-up animation-delay-450">
                 <MetricCard value="1 script" label="to embed the widget on any site" />
                 <MetricCard
                   value="Fast setup"
@@ -218,11 +211,11 @@ export async function MarketingLandingPage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-stone-200/80 bg-white/90 p-6 shadow-2xl shadow-stone-200/80 backdrop-blur">
+            <div className="rounded-[2rem] border border-stone-200/80 bg-white/90 p-6 shadow-2xl shadow-stone-200/80 backdrop-blur animate-fade-in-left animation-delay-450">
               <div className="rounded-[1.75rem] bg-stone-950 p-6 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-300">
+                    <div className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-400">
                       Why teams choose NexusChat
                     </div>
                     <h2 className="mt-3 text-2xl font-semibold tracking-tight">
@@ -230,7 +223,7 @@ export async function MarketingLandingPage() {
                     </h2>
                   </div>
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10">
-                    <Zap className="h-5 w-5 text-teal-300" />
+                    <Zap className="h-5 w-5 text-rose-400 animate-bounce-subtle" />
                   </div>
                 </div>
                 <div className="mt-8 space-y-4">
@@ -262,7 +255,7 @@ export async function MarketingLandingPage() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-700">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-700">
                 How it works
               </p>
               <h2 className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
@@ -276,15 +269,16 @@ export async function MarketingLandingPage() {
             </div>
 
             <div className="mt-14 grid gap-6 lg:grid-cols-3">
-              {implementationSteps.map((step) => {
+              {implementationSteps.map((step, index) => {
                 const Icon = step.icon;
 
                 return (
                   <div
                     key={step.title}
-                    className="rounded-[2rem] border border-stone-200 bg-stone-50 p-6 shadow-sm transition hover:-transtone-y-1 hover:bg-white hover:shadow-md"
+                    className="rounded-[2rem] border border-stone-200 bg-stone-50 p-6 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:bg-white hover:shadow-xl animate-fade-in-up"
+                    style={{ animationDelay: `${index * 150}ms` }}
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 transition hover:scale-110">
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="mt-6 text-xl font-semibold tracking-tight text-stone-950">
@@ -304,7 +298,7 @@ export async function MarketingLandingPage() {
           <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
             <div className="space-y-6">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-700">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-700">
                   Live demo
                 </p>
                 <h2 className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
@@ -361,7 +355,7 @@ export async function MarketingLandingPage() {
         >
           <div className="mx-auto max-w-7xl">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-teal-300">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-400">
                 Pricing
               </p>
               <h2 className="mt-3 text-4xl font-semibold tracking-tight">
@@ -380,7 +374,7 @@ export async function MarketingLandingPage() {
                   key={plan.name}
                   className={`rounded-[2rem] border p-6 shadow-xl ${
                     plan.highlighted
-                      ? "border-amber-400 bg-white text-stone-950"
+                      ? "border-rose-400 bg-white text-stone-950"
                       : "border-stone-800 bg-stone-900 text-white"
                   }`}
                 >
@@ -401,7 +395,7 @@ export async function MarketingLandingPage() {
                       </div>
                     </div>
                     {plan.highlighted ? (
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-900">
+                      <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-900 animate-pulse">
                         Most Popular
                       </span>
                     ) : null}
@@ -419,8 +413,8 @@ export async function MarketingLandingPage() {
                     {plan.features.map((feature) => (
                       <div key={feature} className="flex items-start gap-3">
                         <CheckCircle2
-                          className={`mt-0.5 h-5 w-5 shrink-0 ${
-                            plan.highlighted ? "text-teal-700" : "text-teal-300"
+                          className={`mt-0.5 h-5 w-5 shrink-0 animate-bounce-subtle ${
+                            plan.highlighted ? "text-rose-700" : "text-rose-400"
                           }`}
                         />
                         <span
@@ -454,17 +448,7 @@ export async function MarketingLandingPage() {
       <footer className="border-t border-stone-200 bg-white px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-stone-950 text-white">
-              <Bot className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-tight text-stone-950">
-                NexusChat
-              </div>
-              <div className="text-xs text-stone-500">
-                AI customer support chatbots
-              </div>
-            </div>
+            <Logo tone="light" size="md" />
           </div>
           <p className="text-sm text-stone-500">
             Copyright {new Date().getFullYear()} NexusChat. AI chatbots trained on
@@ -510,7 +494,7 @@ function FeaturePanel({
 function ValuePill({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-      <CheckCircle2 className="h-5 w-5 shrink-0 text-teal-300" />
+      <CheckCircle2 className="h-5 w-5 shrink-0 text-rose-400" />
       <span className="text-sm leading-6 text-stone-200">{text}</span>
     </div>
   );
@@ -519,7 +503,7 @@ function ValuePill({ text }: { text: string }) {
 function Bullet({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-3">
-      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal-700" />
+      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" />
       <span className="text-sm leading-7 text-stone-600">{text}</span>
     </div>
   );

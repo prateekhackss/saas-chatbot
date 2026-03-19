@@ -106,7 +106,7 @@ function ToastCard({
     ) : toast.variant === "error" ? (
       <AlertCircle className="h-5 w-5 text-rose-600" />
     ) : (
-      <Info className="h-5 w-5 text-teal-600" />
+      <Info className="h-5 w-5 text-rose-600" />
     );
 
   const palette =
@@ -114,11 +114,11 @@ function ToastCard({
       ? "border-emerald-200 bg-emerald-50/95"
       : toast.variant === "error"
         ? "border-rose-200 bg-rose-50/95"
-        : "border-teal-200 bg-white/95";
+        : "border-stone-200 bg-white/95";
 
   return (
     <div
-      className={`pointer-events-auto rounded-[1.5rem] border px-4 py-4 shadow-lg shadow-stone-900/10 backdrop-blur ${palette}`}
+      className={`pointer-events-auto rounded-[1.5rem] border px-4 py-4 shadow-lg shadow-stone-900/10 backdrop-blur animate-fade-in-down ${palette}`}
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 shrink-0">{icon}</div>

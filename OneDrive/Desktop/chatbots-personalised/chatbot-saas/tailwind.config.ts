@@ -8,9 +8,18 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        archivo: ["var(--font-archivo)"],
+        sora: ["var(--font-sora)"],
+      },
       animation: {
         blob: "blob 7s infinite",
-        "fade-in-up": "fadeInUp 0.3s ease-out forwards",
+        "fade-in-up": "fadeInUp 0.6s ease-out forwards",
+        "fade-in-down": "fadeInDown 0.6s ease-out forwards",
+        "fade-in-left": "fadeInLeft 0.6s ease-out forwards",
+        "fade-in-right": "fadeInRight 0.6s ease-out forwards",
+        "fade-in": "fadeIn 0.6s ease-out forwards",
+        "bounce-subtle": "bounceSubtle 2s infinite ease-in-out",
       },
       colors: {
         background: "var(--background)",
@@ -44,8 +53,28 @@ const config: Config = {
           "100%": { transform: "translate(0px, 0px) scale(1)" },
         },
         fadeInUp: {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%": { opacity: "0", transform: "translateY(20px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeInDown: {
+          "0%": { opacity: "0", transform: "translateY(-20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeInLeft: {
+          "0%": { opacity: "0", transform: "translateX(20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        fadeInRight: {
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        bounceSubtle: {
+          "0%, 100%": { transform: "translateY(-2%)" },
+          "50%": { transform: "translateY(0)" },
         },
       },
     },

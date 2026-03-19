@@ -49,7 +49,7 @@ export function LiveDemoLauncher({
   return (
     <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-xl shadow-stone-200/70">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 animate-bounce-subtle">
           <Sparkles className="h-5 w-5" />
         </div>
         <div>

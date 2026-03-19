@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  Bot,
   ChevronRight,
   Crown,
   LayoutDashboard,
@@ -14,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
+import { Logo } from "@/components/ui/logo";
 
 type DashboardChromeProps = {
   userEmail: string;
@@ -104,7 +104,7 @@ export function DashboardChrome({
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-stone-800 bg-stone-950 text-stone-100 lg:flex">
+        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-neutral-900 bg-[#0A0A0A] text-neutral-100 lg:flex">
           <SidebarContent
             pathname={pathname}
             userEmail={userEmail}
@@ -152,7 +152,7 @@ export function DashboardChrome({
                 </span>
                 <span className="max-w-[220px] truncate">{userEmail}</span>
                 {isAdmin && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700">
                     <Crown className="h-2.5 w-2.5" />
                     Admin
                   </span>
@@ -175,17 +175,15 @@ export function DashboardChrome({
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="Close navigation menu"
           />
-          <aside className="relative flex h-full w-[86vw] max-w-[320px] flex-col bg-stone-950 text-stone-100 shadow-2xl">
+          <aside className="relative flex h-full w-[86vw] max-w-[320px] flex-col bg-[#0A0A0A] text-neutral-100 shadow-2xl">
             <div className="flex items-center justify-between px-4 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-500/15 text-teal-300">
-                  <Bot className="h-5 w-5" />
-                </div>
+                <Logo size="sm" variant="icon" />
                 <div>
-                  <div className="text-sm font-semibold tracking-tight">
-                    NexusChat
+                  <div className="text-sm font-archivo tracking-tight text-white">
+                    Nexus<span className="text-[#EF4444]">Chat</span>
                   </div>
-                  <div className="text-xs text-stone-400">Admin workspace</div>
+                  <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">Admin workspace</div>
                 </div>
               </div>
               <button
@@ -219,8 +217,8 @@ export function DashboardChrome({
                 href={item.href}
                 className={`flex flex-col items-center justify-center rounded-2xl px-2 py-2 text-xs font-medium transition ${
                   isActive
-                    ? "bg-stone-950 text-white"
-                    : "text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+                    ? "bg-[#0A0A0A] text-white"
+                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -247,16 +245,16 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="border-b border-stone-800 px-5 py-5">
+      <div className="border-b border-neutral-900 px-5 py-5">
         <Link href="/dashboard" className="flex items-center gap-3" onClick={onNavigate}>
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500/15 text-teal-300">
-            <Bot className="h-5 w-5" />
-          </div>
+          <Logo size="sm" variant="icon" />
           <div>
-            <div className="text-sm font-semibold tracking-tight text-white">
-              NexusChat
+            <div className="text-sm font-archivo tracking-tight text-white">
+              Nexus<span className="text-[#EF4444]">Chat</span>
             </div>
-            <div className="text-xs text-stone-400">{isAdmin ? 'Admin Console' : 'Operations Console'}</div>
+            <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">
+              {isAdmin ? 'Admin' : 'Operations'} Console
+            </div>
           </div>
         </Link>
       </div>
@@ -274,15 +272,15 @@ function SidebarContent({
                 onClick={onNavigate}
                 className={`group flex items-center gap-3 rounded-2xl border-l-2 px-4 py-3 transition ${
                   isActive
-                    ? "border-teal-400 bg-white/8 text-white"
-                    : "border-transparent text-stone-300 hover:bg-white/5 hover:text-white"
+                    ? "border-[#EF4444] bg-white/5 text-white"
+                    : "border-transparent text-neutral-400 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <span
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                     isActive
-                      ? "bg-teal-400/15 text-teal-300"
-                      : "bg-stone-900 text-stone-400 group-hover:text-stone-200"
+                      ? "bg-[#EF4444]/15 text-[#EF4444]"
+                      : "bg-neutral-950 text-neutral-500 group-hover:text-neutral-300"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -291,7 +289,7 @@ function SidebarContent({
                   <span className="block text-sm font-semibold tracking-tight">
                     {item.label}
                   </span>
-                  <span className="block truncate text-xs text-stone-400">
+                  <span className="block truncate text-xs text-neutral-500">
                     {item.description}
                   </span>
                 </span>
@@ -301,20 +299,20 @@ function SidebarContent({
         </nav>
       </div>
 
-      <div className="border-t border-stone-800 px-4 py-5">
-        <div className="mb-4 rounded-2xl bg-white/5 px-4 py-3">
+      <div className="border-t border-neutral-900 px-4 py-5">
+        <div className="mb-4 rounded-2xl bg-[#171717] px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+            <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500">
               Signed In
             </div>
             {isAdmin && (
-              <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+              <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-500 border border-rose-500/20">
                 <Crown className="h-2 w-2" />
                 Admin
               </span>
             )}
           </div>
-          <div className="mt-2 truncate text-sm text-stone-200">{userEmail}</div>
+          <div className="mt-2 truncate text-sm text-neutral-300">{userEmail}</div>
         </div>
         <LogoutButton tone="dark" />
       </div>

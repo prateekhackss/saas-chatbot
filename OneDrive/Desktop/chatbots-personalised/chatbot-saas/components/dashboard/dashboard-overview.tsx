@@ -37,7 +37,7 @@ export async function DashboardOverview() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-6">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-6 animate-fade-in-up">
         <StatCard
           title="Total Clients"
           value={totalClients.toString()}
@@ -72,7 +72,7 @@ export async function DashboardOverview() {
           title="Total Tokens Estimated"
           value={totalUsageTokens.toLocaleString()}
           subtitle="Calculated from transcripts"
-          icon={<Zap className="h-4 w-4 text-amber-500" />}
+          icon={<Zap className="h-4 w-4 text-rose-500" />}
         />
       </div>
 
@@ -80,13 +80,13 @@ export async function DashboardOverview() {
         <h2 className="mb-4 text-xl font-semibold text-stone-900">
           Quick Actions
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 animate-fade-in-up animation-delay-150">
           <Link
             href="/clients"
             className="flex items-center rounded-xl border border-stone-200 bg-stone-50 p-4 transition-colors hover:bg-stone-100"
           >
-            <div className="mr-4 rounded-lg bg-teal-100 p-2">
-              <Users className="h-5 w-5 text-teal-600" />
+            <div className="mr-4 rounded-lg bg-rose-100 p-2 transition-transform hover:scale-110">
+              <Users className="h-5 w-5 text-rose-600" />
             </div>
             <div>
               <div className="font-medium text-stone-900">Manage Clients</div>
@@ -99,8 +99,8 @@ export async function DashboardOverview() {
             href="/clients/new"
             className="flex items-center rounded-xl border border-stone-200 bg-stone-50 p-4 transition-colors hover:bg-stone-100"
           >
-            <div className="mr-4 rounded-lg bg-amber-100 p-2">
-              <Bot className="h-5 w-5 text-amber-600" />
+            <div className="mr-4 rounded-lg bg-stone-200 p-2 transition-transform hover:scale-110">
+              <Bot className="h-5 w-5 text-stone-700" />
             </div>
             <div>
               <div className="font-medium text-stone-900">Deploy New Bot</div>
@@ -127,7 +127,7 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-1">
       <div className="flex flex-row items-center justify-between pb-2">
         <h3 className="text-sm font-medium text-stone-500">{title}</h3>
         {icon}
