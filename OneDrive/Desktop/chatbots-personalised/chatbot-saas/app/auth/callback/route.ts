@@ -5,6 +5,8 @@ import type { Database } from "@/types/database";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const token_hash = requestUrl.searchParams.get("token_hash");
+  const type = requestUrl.searchParams.get("type");
   const next = requestUrl.searchParams.get("next") || "/clients";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest) {
   redirectUrl.pathname = "/login";
   redirectUrl.search = "";
 
-  if (!code || !supabaseUrl || !supabaseAnonKey) {
+  if ((!code && !token_hash) || !supabaseUrl || !supabaseAnonKey) {
     redirectUrl.searchParams.set("authError", "callback_failed");
     return NextResponse.redirect(redirectUrl);
   }
@@ -34,13 +36,62 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  // Handle PKCE code exchange (email confirmation, OAuth callback)
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    redirectUrl.searchParams.set("authError", "callback_failed");
-    redirectUrl.searchParams.set("message", error.message);
-    return NextResponse.redirect(redirectUrl);
+    if (error) {
+      redirectUrl.searchParams.set("authError", "callback_failed");
+      redirectUrl.searchParams.set("message", error.message);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    return response;
   }
 
-  return response;
+  // Handle token_hash verification (magic link, password recovery)
+  if (token_hash && type) {
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type: type as "recovery" | "magiclink" | "signup" | "email",
+    });
+
+    if (error) {
+      redirectUrl.searchParams.set("authError", "callback_failed");
+      redirectUrl.searchParams.set("message", error.message);
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // For password recovery, redirect to reset password page
+    if (type === "recovery") {
+      response = NextResponse.redirect(
+        new URL("/reset-password", request.url),
+      );
+      // Re-apply cookies to the new response
+      const supabase2 = createServerClient<Database>(
+        supabaseUrl,
+        supabaseAnonKey,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        },
+      );
+      // Trigger a session refresh to ensure cookies are set
+      await supabase2.auth.getUser();
+      return response;
+    }
+
+    return response;
+  }
+
+  redirectUrl.searchParams.set("authError", "callback_failed");
+  return NextResponse.redirect(redirectUrl);
 }

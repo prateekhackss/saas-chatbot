@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Bot,
   ChevronRight,
+  Crown,
   LayoutDashboard,
   Menu,
   PlusCircle,
@@ -16,6 +17,7 @@ import { LogoutButton } from "@/components/dashboard/logout-button";
 
 type DashboardChromeProps = {
   userEmail: string;
+  isAdmin: boolean;
   children: React.ReactNode;
 };
 
@@ -42,6 +44,7 @@ const navigationItems = [
 
 export function DashboardChrome({
   userEmail,
+  isAdmin,
   children,
 }: DashboardChromeProps) {
   const pathname = usePathname();
@@ -105,6 +108,7 @@ export function DashboardChrome({
           <SidebarContent
             pathname={pathname}
             userEmail={userEmail}
+            isAdmin={isAdmin}
             onNavigate={() => undefined}
           />
         </aside>
@@ -147,6 +151,12 @@ export function DashboardChrome({
                   {getInitials(userEmail)}
                 </span>
                 <span className="max-w-[220px] truncate">{userEmail}</span>
+                {isAdmin && (
+                  <span className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-700">
+                    <Crown className="h-2.5 w-2.5" />
+                    Admin
+                  </span>
+                )}
               </div>
             </div>
           </header>
@@ -190,6 +200,7 @@ export function DashboardChrome({
             <SidebarContent
               pathname={pathname}
               userEmail={userEmail}
+              isAdmin={isAdmin}
               onNavigate={() => setIsMobileMenuOpen(false)}
             />
           </aside>
@@ -226,10 +237,12 @@ export function DashboardChrome({
 function SidebarContent({
   pathname,
   userEmail,
+  isAdmin,
   onNavigate,
 }: {
   pathname: string;
   userEmail: string;
+  isAdmin: boolean;
   onNavigate: () => void;
 }) {
   return (
@@ -243,7 +256,7 @@ function SidebarContent({
             <div className="text-sm font-semibold tracking-tight text-white">
               NexusChat
             </div>
-            <div className="text-xs text-stone-400">Operations Console</div>
+            <div className="text-xs text-stone-400">{isAdmin ? 'Admin Console' : 'Operations Console'}</div>
           </div>
         </Link>
       </div>
@@ -290,8 +303,16 @@ function SidebarContent({
 
       <div className="border-t border-stone-800 px-4 py-5">
         <div className="mb-4 rounded-2xl bg-white/5 px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
-            Signed In
+          <div className="flex items-center gap-2">
+            <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+              Signed In
+            </div>
+            {isAdmin && (
+              <span className="inline-flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300">
+                <Crown className="h-2 w-2" />
+                Admin
+              </span>
+            )}
           </div>
           <div className="mt-2 truncate text-sm text-stone-200">{userEmail}</div>
         </div>

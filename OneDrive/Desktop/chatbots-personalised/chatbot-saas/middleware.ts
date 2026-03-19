@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/favicon.ico", "/embed.js"]);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/forgot-password", "/reset-password", "/favicon.ico", "/embed.js"]);
 const PUBLIC_PREFIXES = ["/api/chat", "/api/embed", "/api/leads", "/widget", "/auth", "/_next"];
 const PROTECTED_PREFIXES = ["/clients", "/dashboard"];
 const PUBLIC_FILE = /\.[^/]+$/;

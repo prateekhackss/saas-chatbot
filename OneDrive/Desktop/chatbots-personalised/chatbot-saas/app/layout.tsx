@@ -30,6 +30,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* Nexus Chat widget — live demo on our own site */}
+        <script
+          src="https://nexuschat.prateekhacks.in/embed.js"
+          data-client="nexus-chat"
+          async
+        />
       </body>
     </html>
   );

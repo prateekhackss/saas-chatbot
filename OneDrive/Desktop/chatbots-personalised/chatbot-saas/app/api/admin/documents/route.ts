@@ -161,10 +161,15 @@ export async function POST(req: NextRequest) {
       // If the embedding or chunk insertion fails, we should ideally rollback 
       // the original document insert to prevent dangling/un-embedded docs.
       console.error('Pipeline Error:', pipelineError);
+      console.error('Pipeline Error Details:', pipelineError instanceof Error ? pipelineError.message : String(pipelineError));
+      console.error('Pipeline Error Stack:', pipelineError instanceof Error ? pipelineError.stack : 'No stack trace');
       
       await supabase.from('documents').delete().eq('id', documentId);
       
-      return NextResponse.json({ error: 'Document processing failed, changes reverted' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Document processing failed, changes reverted',
+        details: pipelineError instanceof Error ? pipelineError.message : String(pipelineError)
+      }, { status: 500 });
     }
 
   } catch (error) {
