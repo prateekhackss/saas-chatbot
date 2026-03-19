@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { DragEvent, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   AlertCircle,
@@ -9,6 +9,9 @@ import {
   FileText,
   Loader2,
   Trash2,
+  Upload,
+  File as FileIcon,
+  X,
 } from "lucide-react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast-provider";
@@ -58,6 +61,136 @@ export default function ClientDocumentsPage() {
   );
   const [documentPendingDelete, setDocumentPendingDelete] =
     useState<DocumentRecord | null>(null);
+
+  // File upload state
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
+
+  const ACCEPTED_EXTENSIONS = [".pdf", ".txt", ".md", ".csv"];
+
+  const handleFileUpload = useCallback(async (file: File) => {
+    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    if (!ACCEPTED_EXTENSIONS.includes(ext)) {
+      setFormError(`Unsupported file type "${ext}". Supported: PDF, TXT, MD, CSV`);
+      pushToast({
+        title: "Unsupported file type",
+        description: `Only PDF, TXT, MD, and CSV files are supported.`,
+        variant: "error",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    setFormError(null);
+    setSuccessMessage(null);
+    setUploadedFile(file);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/admin/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setFormError(payload.error || "Failed to process the file.");
+        setUploadedFile(null);
+        pushToast({
+          title: "File upload failed",
+          description: payload.error || "Could not extract text from this file.",
+          variant: "error",
+        });
+        return;
+      }
+
+      // Auto-fill title (if empty) and content from the extracted text
+      if (!title.trim()) {
+        setTitle(payload.suggestedTitle || "");
+      }
+      setContent(payload.content);
+      pushToast({
+        title: "File loaded successfully",
+        description: `Extracted ${payload.charCount.toLocaleString()} characters from "${file.name}".`,
+        variant: "success",
+      });
+    } catch (error) {
+      console.error(error);
+      setFormError("Something went wrong while processing the file.");
+      setUploadedFile(null);
+      pushToast({
+        title: "File upload failed",
+        description: "Something went wrong while processing the file.",
+        variant: "error",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [title, pushToast]);
+
+  const handleDragEnter = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current += 1;
+    if (dragCounterRef.current === 1) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  }, [handleFileUpload]);
+
+  const handleFileInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        handleFileUpload(files[0]);
+      }
+      // Reset input so re-selecting the same file works
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [handleFileUpload],
+  );
+
+  const clearUploadedFile = useCallback(() => {
+    setUploadedFile(null);
+    setContent("");
+    setTitle("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
 
   async function loadKnowledgeBase() {
     setLoadError(null);
@@ -316,12 +449,94 @@ export default function ClientDocumentsPage() {
             Upload New Document
           </h2>
           <p className="text-sm text-stone-500">
-            Paste your FAQ, product descriptions, company policies, or any text
-            content. The AI will learn from this to answer customer questions.
+            Upload a file or paste text content. The AI will learn from this to answer customer questions.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          {/* ── File Upload Drop Zone ── */}
+          <div
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !isUploading && fileInputRef.current?.click()}
+            className={`group relative cursor-pointer rounded-[1.5rem] border-2 border-dashed p-8 text-center transition-all duration-200 ${
+              isDragging
+                ? "border-teal-400 bg-teal-50/60"
+                : uploadedFile
+                ? "border-emerald-300 bg-emerald-50/40"
+                : "border-stone-200 bg-stone-50/50 hover:border-stone-300 hover:bg-stone-50"
+            }`}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.txt,.md,.csv"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-100">
+                  <Loader2 className="h-7 w-7 animate-spin text-teal-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">Extracting text...</p>
+                  <p className="mt-1 text-xs text-stone-500">Processing your file, this won't take long.</p>
+                </div>
+              </div>
+            ) : uploadedFile ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100">
+                  <FileIcon className="h-7 w-7 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">{uploadedFile.name}</p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    {(uploadedFile.size / 1024).toFixed(1)} KB · Text extracted successfully
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    clearUploadedFile();
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 transition hover:border-stone-300 hover:text-stone-900"
+                >
+                  <X className="h-3 w-3" />
+                  Remove & start over
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-colors ${
+                  isDragging ? "bg-teal-100" : "bg-stone-100 group-hover:bg-stone-200/70"
+                }`}>
+                  <Upload className={`h-7 w-7 transition-colors ${
+                    isDragging ? "text-teal-600" : "text-stone-500 group-hover:text-stone-600"
+                  }`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">
+                    {isDragging ? "Drop your file here" : "Drag & drop a file, or click to browse"}
+                  </p>
+                  <p className="mt-1 text-xs text-stone-500">
+                    Supports PDF, TXT, Markdown, and CSV · Max 10MB
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative flex items-center gap-4">
+            <div className="h-px flex-1 bg-stone-200" />
+            <span className="text-xs font-medium uppercase tracking-widest text-stone-400">or paste text manually</span>
+            <div className="h-px flex-1 bg-stone-200" />
+          </div>
+
           <div className="grid gap-5 md:grid-cols-[1.5fr_0.75fr]">
             <Field label="Title" required>
               <input
