@@ -41,6 +41,11 @@
       // Fetch visual branding config so we can color the floating button correctly
       const res = await fetch(`${hostUrl}/api/embed/${clientSlug}`);
       if (!res.ok) {
+        if (res.status === 404) {
+          // Client deleted or subscription cancelled (inactive)
+          // Gracefully and silently fail so the customer's site is unaffected
+          return;
+        }
         console.error('NexusChat Embed: Failed to load widget configuration.');
         return;
       }
