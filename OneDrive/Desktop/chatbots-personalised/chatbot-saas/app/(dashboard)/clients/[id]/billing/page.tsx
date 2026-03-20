@@ -1,0 +1,56 @@
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { PricingSection } from "@/components/landing/pricing-section";
+
+export default async function ClientBillingPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const db = supabase as any;
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    redirect("/login");
+  }
+
+  const { data: client, error } = await db
+    .from("clients")
+    .select("id, name, plan_tier, subscription_status")
+    .eq("id", id)
+    .single();
+
+  if (error || !client) {
+    redirect("/clients");
+  }
+
+  return (
+    <div className="mx-auto max-w-7xl space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+          Billing & Plans
+        </h1>
+        <p className="mt-2 text-stone-500">
+          Manage your subscription for <strong>{client.name}</strong>.
+        </p>
+      </div>
+
+      <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-semibold tracking-tight text-stone-950">
+          Current Plan: <span className="capitalize">{client.plan_tier || 'Starter'}</span>
+        </h2>
+        <p className="mt-1 text-sm text-stone-500">
+          Status: <span className="capitalize font-medium text-stone-700">{client.subscription_status || 'Trialing'}</span>
+        </p>
+      </div>
+
+      {/* Reusing the landing page pricing cards but injecting the Razorpay logic */}
+      <div className="-mx-4 sm:-mx-6 lg:-mx-8 border-none mt-8">
+        <PricingSection clientId={client.id} userEmail={user.email} />
+      </div>
+    </div>
+  );
+}

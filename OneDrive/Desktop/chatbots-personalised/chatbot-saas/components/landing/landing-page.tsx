@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { LiveDemoLauncher } from "@/components/landing/live-demo-launcher";
+import { PricingSection } from "@/components/landing/pricing-section";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Logo } from "@/components/ui/logo";
 
@@ -41,45 +42,7 @@ const implementationSteps = [
   },
 ];
 
-const pricingPlans = [
-  {
-    name: "Starter",
-    price: "$150",
-    description: "A focused launch for a single business website.",
-    features: [
-      "One chatbot setup and branded widget",
-      "Knowledge base trained from your provided content",
-      "Widget install snippet and launch support",
-      "Best for coaches, consultants, and local businesses",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Professional",
-    price: "$200",
-    description:
-      "The most popular option for teams that need a stronger support workflow.",
-    features: [
-      "Everything in Starter",
-      "Expanded knowledge base and prompt tuning",
-      "Suggested questions and polished fallback flows",
-      "Dashboard handoff with analytics and document management",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Premium",
-    price: "$350",
-    description: "For multi-page sites or businesses that want a white-glove launch.",
-    features: [
-      "Everything in Professional",
-      "Priority configuration and styling support",
-      "Advanced onboarding for larger content sets",
-      "Launch QA plus embed review before go-live",
-    ],
-    highlighted: false,
-  },
-];
+
 
 async function getDemoClient(): Promise<DemoClient | null> {
   try {
@@ -167,7 +130,7 @@ export async function MarketingLandingPage() {
             <div className="absolute right-[12%] top-16 h-80 w-80 rounded-full bg-red-200/25 blur-3xl animate-blob animation-delay-4000" />
           </div>
 
-          <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="mx-auto grid max-w-7xl gap-14 lg:grid-cols-2 lg:items-start">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-900 animate-fade-in-down">
                 <Sparkles className="h-4 w-4 text-rose-500 animate-pulse" />
@@ -187,7 +150,7 @@ export async function MarketingLandingPage() {
                   href="/signup"
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-6 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800"
                 >
-                  Build Your Chatbot
+                  Start 14-Day Free Trial
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
@@ -197,16 +160,32 @@ export async function MarketingLandingPage() {
                   View Live Demo
                 </Link>
               </div>
+              <p className="mt-4 text-sm font-medium text-stone-500 animate-fade-in-up animation-delay-450">
+                No credit card required. Cancel anytime.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-6 animate-fade-in-up animation-delay-500">
+                <div className="flex items-center gap-2 text-sm text-stone-500">
+                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                  Payments secured by Razorpay
+                </div>
+                <div className="flex items-center gap-2 text-sm text-stone-500">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600 border border-stone-200">
+                    P
+                  </div>
+                  Built by an AI engineer, not a corp
+                </div>
+              </div>
 
               <div className="mt-10 grid gap-4 sm:grid-cols-3 animate-fade-in-up animation-delay-450">
-                <MetricCard value="1 script" label="to embed the widget on any site" />
+                <MetricCard value="<2s Response" label="Lightning-fast AI inference" />
                 <MetricCard
-                  value="Fast setup"
-                  label="launch-ready support flows without custom coding"
+                  value="5m Training"
+                  label="Upload docs and deploy instantly"
                 />
                 <MetricCard
-                  value="Clear guardrails"
-                  label="responses grounded in your uploaded business content"
+                  value="256-bit SSL"
+                  label="Enterprise-grade data encryption"
                 />
               </div>
             </div>
@@ -349,100 +328,7 @@ export async function MarketingLandingPage() {
           </div>
         </section>
 
-        <section
-          id="pricing"
-          className="border-t border-stone-200 bg-stone-950 px-4 py-24 text-white sm:px-6 lg:px-8"
-        >
-          <div className="mx-auto max-w-7xl">
-            <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-400">
-                Pricing
-              </p>
-              <h2 className="mt-3 text-4xl font-semibold tracking-tight">
-                Honest one-time setup pricing for the business you are actually selling.
-              </h2>
-              <p className="mt-4 text-lg leading-8 text-stone-300">
-                These plans match a service-led launch model: you onboard the
-                client, configure the widget, and hand off a dashboard they can
-                keep managing after setup.
-              </p>
-            </div>
-
-            <div className="mt-14 grid gap-6 lg:grid-cols-3">
-              {pricingPlans.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`rounded-[2rem] border p-6 shadow-xl ${
-                    plan.highlighted
-                      ? "border-rose-400 bg-white text-stone-950"
-                      : "border-stone-800 bg-stone-900 text-white"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-2xl font-semibold tracking-tight">
-                        {plan.name}
-                      </h3>
-                      <div className="mt-4 text-5xl font-semibold tracking-tight">
-                        {plan.price}
-                      </div>
-                      <div
-                        className={`mt-1 text-sm ${
-                          plan.highlighted ? "text-stone-500" : "text-stone-400"
-                        }`}
-                      >
-                        one-time setup
-                      </div>
-                    </div>
-                    {plan.highlighted ? (
-                      <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-900 animate-pulse">
-                        Most Popular
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p
-                    className={`mt-4 text-sm leading-7 ${
-                      plan.highlighted ? "text-stone-600" : "text-stone-300"
-                    }`}
-                  >
-                    {plan.description}
-                  </p>
-
-                  <div className="mt-8 space-y-4">
-                    {plan.features.map((feature) => (
-                      <div key={feature} className="flex items-start gap-3">
-                        <CheckCircle2
-                          className={`mt-0.5 h-5 w-5 shrink-0 animate-bounce-subtle ${
-                            plan.highlighted ? "text-rose-700" : "text-rose-400"
-                          }`}
-                        />
-                        <span
-                          className={`text-sm leading-6 ${
-                            plan.highlighted ? "text-stone-700" : "text-stone-200"
-                          }`}
-                        >
-                          {feature}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Link
-                    href="/signup"
-                    className={`mt-8 inline-flex h-11 w-full items-center justify-center rounded-2xl text-sm font-semibold transition ${
-                      plan.highlighted
-                        ? "bg-stone-950 text-white hover:bg-stone-800"
-                        : "bg-white text-stone-950 hover:bg-stone-100"
-                    }`}
-                  >
-                    Start with {plan.name}
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <PricingSection />
       </main>
 
       <footer className="border-t border-stone-200 bg-white px-4 py-10 sm:px-6 lg:px-8">

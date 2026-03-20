@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+import { PLAN_LIMITS, PlanTier } from "@/lib/constants/pricing";
 
 const updateClientSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,6 +21,7 @@ const updateClientSchema = z.object({
     logoUrl: z.string().url().optional().or(z.literal("")),
     suggestedQuestions: z.array(z.string()),
     allowedOrigins: z.array(z.string()).optional(),
+    removeBranding: z.boolean().optional(),
     leadCaptureEnabled: z.boolean().optional(),
     leadCaptureMessage: z.string().optional(),
     handoffWebhookUrl: z.string().url().optional().or(z.literal('')),
@@ -67,7 +69,7 @@ export async function PATCH(
 
     const { data: existingClient, error: existingClientError } = await db
       .from("clients")
-      .select("id")
+      .select("id, plan_tier")
       .eq("id", id)
       .maybeSingle();
 
@@ -81,6 +83,15 @@ export async function PATCH(
     if (!existingClient) {
       return NextResponse.json({ error: "Client not found" }, { status: 404 });
     }
+
+    // Part 6: Backend Feature Gating
+    const planTier = (existingClient.plan_tier || 'starter') as PlanTier;
+    const allowed = PLAN_LIMITS[planTier].features;
+    
+    // Strip premium features if not allowed by plan tier
+    if (!allowed.removeBranding) config.removeBranding = false;
+    if (!allowed.leadCapture) config.leadCaptureEnabled = false;
+    if (!allowed.humanHandoff) config.handoffWebhookUrl = "";
 
     const { data: duplicateSlug } = await db
       .from("clients")

@@ -4,6 +4,7 @@ import { getRelevantContext, buildSystemPrompt } from '@/lib/ai/rag';
 import { embedText } from '@/lib/ai/embeddings';
 import { streamChatResponse, type ChatHistoryMessage } from '@/lib/ai/groq';
 import { ClientConfig } from '@/types/database';
+import { PLAN_LIMITS, PlanTier } from '@/lib/constants/pricing';
 
 // Opt out of caching; this must be dynamic for real-time chat
 export const dynamic = 'force-dynamic';
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     // 1. Validate Client & Get Config (Runs concurrently)
     const { data: rawClient, error: clientError } = await supabase
       .from('clients')
-      .select('id, config, is_active')
+      .select('id, config, is_active, plan_tier, messages_this_month')
       .eq('slug', clientSlug)
       .single();
 
@@ -122,6 +123,20 @@ export async function POST(req: NextRequest) {
 
     const clientId = client.id;
     const clientConfig = client.config as ClientConfig;
+
+    // 1.5. Validate Usage Limits (Part 6 Metering)
+    const planTier = (client.plan_tier || 'starter') as PlanTier;
+    const messagesUsed = client.messages_this_month || 0;
+    const messageLimit = PLAN_LIMITS[planTier].maxMessages;
+
+    if (messagesUsed >= messageLimit) {
+      // Graceful degradation fallback if usage exceeds 100%
+      // Returns a static plain text response that the `useChat` hook can read as a single chunk.
+      return new NextResponse(
+        "I'm currently unavailable. Please contact the team directly.",
+        { status: 200 }
+      );
+    }
 
     // 2. RAG Phase 1: Retrieval
     // Wait for the embedding promise to finish before querying vectors
@@ -165,6 +180,10 @@ export async function POST(req: NextRequest) {
              timestamp: new Date().toISOString(),
            }).catch(err => console.error('Webhook error:', err));
         }
+
+        // Increment the usage tracking metrics safely
+        // @ts-ignore - Supabase type-gen mismatch
+        await supabase.rpc('increment_client_messages', { target_client_id: clientId });
     });
 
     // The Vercel AI SDK provides `toDataStreamResponse()` which easily hooks into Next.js App Router

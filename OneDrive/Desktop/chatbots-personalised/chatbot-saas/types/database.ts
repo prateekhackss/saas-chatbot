@@ -11,6 +11,7 @@ export type ClientConfig = {
   allowedOrigins?: string[]; // Optional: restrict which domains can use this client's widget
   
   // Revenue Features
+  removeBranding?: boolean;
   leadCaptureEnabled?: boolean;
   leadCaptureMessage?: string; // e.g. "Before we chat, could you share your email?"
   handoffWebhookUrl?: string; // Optional webhook URL for escalation notifications
@@ -34,6 +35,8 @@ export type Database = {
           slug: string;
           config: ClientConfig;
           is_active: boolean;
+          plan_tier: "starter" | "pro" | "business";
+          messages_this_month: number;
           created_at: string;
           updated_at: string;
         };
@@ -44,6 +47,8 @@ export type Database = {
           slug: string;
           config?: ClientConfig;
           is_active?: boolean;
+          plan_tier?: "starter" | "pro" | "business";
+          messages_this_month?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -54,9 +59,56 @@ export type Database = {
           slug?: string;
           config?: ClientConfig;
           is_active?: boolean;
+          plan_tier?: "starter" | "pro" | "business";
+          messages_this_month?: number;
+          subscription_status?: string | null;
           created_at?: string;
           updated_at?: string;
         };
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          client_id: string;
+          razorpay_subscription_id: string;
+          plan_id: string;
+          status: string;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          razorpay_subscription_id: string;
+          plan_id: string;
+          status: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          razorpay_subscription_id?: string;
+          plan_id?: string;
+          status?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       documents: {
         Row: {
@@ -160,6 +212,12 @@ export type Database = {
     };
     Views: {};
     Functions: {
+      increment_client_messages: {
+        Args: {
+          target_client_id: string;
+        };
+        Returns: undefined;
+      };
       match_chunks: {
         Args: {
           query_embedding: string | number[];

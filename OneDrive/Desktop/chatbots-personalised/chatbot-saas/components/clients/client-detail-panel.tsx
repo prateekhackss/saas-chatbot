@@ -10,6 +10,7 @@ import {
   Copy,
   FileText,
   Loader2,
+  Lock,
   MessageSquare,
   MessageSquareText,
   PencilLine,
@@ -20,12 +21,14 @@ import {
 
 import { useToast } from "@/components/ui/toast-provider";
 import type { ClientConfig } from "@/types/database";
+import { PLAN_LIMITS, PlanTier } from "@/lib/constants/pricing";
 
 type ClientRecord = {
   id: string;
   name: string;
   slug: string;
   is_active: boolean;
+  plan_tier?: string;
   config: ClientConfig;
 };
 
@@ -78,6 +81,13 @@ export function ClientDetailPanel({
     client.config.suggestedQuestions || [],
   );
 
+  const [removeBranding, setRemoveBranding] = useState(client.config.removeBranding || false);
+  const [leadCaptureEnabled, setLeadCaptureEnabled] = useState(client.config.leadCaptureEnabled || false);
+  const [handoffWebhookUrl, setHandoffWebhookUrl] = useState(client.config.handoffWebhookUrl || "");
+
+  const planTier = (clientState.plan_tier || "starter") as PlanTier;
+  const allowedFeatures = PLAN_LIMITS[planTier].features;
+
   const safeHostUrl = useMemo(() => hostUrl.replace(/\/$/, ""), [hostUrl]);
 
   const embedCode = useMemo(() => {
@@ -97,6 +107,9 @@ export function ClientDetailPanel({
     setFallbackMessage(clientState.config.fallbackMessage);
     setLogoUrl(clientState.config.logoUrl || "");
     setSuggestedQuestions(clientState.config.suggestedQuestions || []);
+    setRemoveBranding(clientState.config.removeBranding || false);
+    setLeadCaptureEnabled(clientState.config.leadCaptureEnabled || false);
+    setHandoffWebhookUrl(clientState.config.handoffWebhookUrl || "");
   }
 
   function updateQuestion(index: number, value: string) {
@@ -236,6 +249,9 @@ export function ClientDetailPanel({
             fallbackMessage: trimmedFallbackMessage,
             logoUrl: logoUrl.trim(),
             suggestedQuestions: trimmedQuestions,
+            removeBranding,
+            leadCaptureEnabled,
+            handoffWebhookUrl: handoffWebhookUrl.trim(),
           },
         }),
       });
@@ -274,6 +290,9 @@ export function ClientDetailPanel({
       setFallbackMessage(nextClient.config.fallbackMessage);
       setLogoUrl(nextClient.config.logoUrl || "");
       setSuggestedQuestions(nextClient.config.suggestedQuestions || []);
+      setRemoveBranding(nextClient.config.removeBranding || false);
+      setLeadCaptureEnabled(nextClient.config.leadCaptureEnabled || false);
+      setHandoffWebhookUrl(nextClient.config.handoffWebhookUrl || "");
       setSuccessMessage("Client configuration updated.");
       pushToast({
         title: "Client updated",
@@ -331,6 +350,12 @@ export function ClientDetailPanel({
             className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
           >
             Back to Clients
+          </Link>
+          <Link
+            href={`/clients/${clientState.id}/billing`}
+            className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
+          >
+            Billing & Plan
           </Link>
 
           {isEditing ? (
@@ -688,6 +713,71 @@ export function ClientDetailPanel({
                 {embedCode}
               </pre>
             </div>
+            
+            <div className="pt-8 border-t border-stone-200">
+               <h3 className="text-lg font-semibold tracking-tight text-stone-950">
+                  Premium & Integrations
+               </h3>
+               <p className="mt-1 text-sm text-stone-500 mb-6">
+                 Unlock advanced capabilities based on your active plan tier.
+               </p>
+
+               <div className="grid gap-6 md:grid-cols-2">
+                 <Field label="Remove NexusChat Branding" hint="Requires Business tier">
+                   {!allowedFeatures.removeBranding ? (
+                      <div className="flex items-center gap-2 text-sm text-stone-500 bg-stone-50 px-4 py-3 rounded-2xl border border-stone-200">
+                         <Lock className="w-4 h-4" />
+                         Upgrade to Business
+                      </div>
+                   ) : (
+                      isEditing ? (
+                        <label className="flex items-center gap-3 mt-2 cursor-pointer">
+                          <input type="checkbox" checked={removeBranding} onChange={e => setRemoveBranding(e.target.checked)} className="h-5 w-5 rounded border-stone-300 text-stone-950 focus:ring-stone-950" />
+                          <span className="text-sm font-medium text-stone-700">Hide \"Powered by NexusChat\"</span>
+                        </label>
+                      ) : (
+                        <ReadValue value={clientState.config.removeBranding ? "Branding Hidden" : "Standard Branding"} />
+                      )
+                   )}
+                 </Field>
+
+                 <Field label="Lead Capture Integration" hint="Requires Pro or Business tier">
+                   {!allowedFeatures.leadCapture ? (
+                      <div className="flex items-center gap-2 text-sm text-stone-500 bg-stone-50 px-4 py-3 rounded-2xl border border-stone-200">
+                         <Lock className="w-4 h-4" />
+                         Upgrade to Pro
+                      </div>
+                   ) : (
+                      isEditing ? (
+                        <label className="flex items-center gap-3 mt-2 cursor-pointer">
+                          <input type="checkbox" checked={leadCaptureEnabled} onChange={e => setLeadCaptureEnabled(e.target.checked)} className="h-5 w-5 rounded border-stone-300 text-stone-950 focus:ring-stone-950" />
+                          <span className="text-sm font-medium text-stone-700">Request user emails before chat</span>
+                        </label>
+                      ) : (
+                        <ReadValue value={clientState.config.leadCaptureEnabled ? "Enabled" : "Disabled"} />
+                      )
+                   )}
+                 </Field>
+
+                 <div className="md:col-span-2">
+                   <Field label="Human Handoff Webhook" hint="Triggered when the AI falls back. Requires Pro or Business.">
+                     {!allowedFeatures.humanHandoff ? (
+                        <div className="flex items-center gap-2 text-sm text-stone-500 bg-stone-50 px-4 py-3 rounded-2xl border border-stone-200">
+                           <Lock className="w-4 h-4" />
+                           Upgrade to Pro
+                        </div>
+                     ) : (
+                        isEditing ? (
+                          <input value={handoffWebhookUrl} onChange={e => setHandoffWebhookUrl(e.target.value)} placeholder="https://your-zapier-webhook.com/" className={inputClassName} />
+                        ) : (
+                          <ReadValue value={clientState.config.handoffWebhookUrl || "Not configured"} />
+                        )
+                     )}
+                   </Field>
+                 </div>
+               </div>
+            </div>
+
           </div>
         </section>
 

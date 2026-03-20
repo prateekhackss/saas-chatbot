@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Archivo_Black, Sora } from "next/font/google";
 import "./globals.css";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 const archivo = Archivo_Black({
   subsets: ["latin"],
@@ -41,7 +42,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${sora.variable} antialiased`}
       >
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
         {/* Nexus Chat widget — live demo on our own site */}
         <script
           src="https://nexuschat.prateekhacks.in/embed.js"
