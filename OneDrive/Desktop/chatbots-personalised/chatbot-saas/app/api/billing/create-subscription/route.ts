@@ -34,6 +34,27 @@ export async function POST(req: NextRequest) {
 
     const { planId, clientId } = result.data;
 
+    // Razorpay generates random Plan IDs (e.g. plan_MaZ1x2y3). 
+    // We map our frontend plan string (e.g. 'starter_monthly') to the environment variables
+    const planToEnvMap: Record<string, string | undefined> = {
+      "starter_monthly": process.env.RAZORPAY_PLAN_STARTER_MONTHLY,
+      "starter_annual": process.env.RAZORPAY_PLAN_STARTER_ANNUAL,
+      "pro_monthly": process.env.RAZORPAY_PLAN_PRO_MONTHLY,
+      "pro_annual": process.env.RAZORPAY_PLAN_PRO_ANNUAL,
+      "business_monthly": process.env.RAZORPAY_PLAN_BUSINESS_MONTHLY,
+      "business_annual": process.env.RAZORPAY_PLAN_BUSINESS_ANNUAL,
+    };
+
+    const razorpayEquivalentPlanId = planToEnvMap[planId];
+
+    if (!razorpayEquivalentPlanId) {
+      console.error(`Missing Razorpay Plan ID in .env for ${planId}`);
+      return NextResponse.json(
+        { error: "Plan configuration missing in environment" },
+        { status: 500 }
+      );
+    }
+
     // Verify the client belongs to this user
     const { data: client, error: clientError } = await db
       .from("clients")
@@ -75,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     // Create a Razorpay Subscription
     const subscription = await razorpay.subscriptions.create({
-      plan_id: planId,
+      plan_id: razorpayEquivalentPlanId,
       customer_notify: 1, // Razorpay handles email notifications
       total_count: 12, // Usually 12 for monthly, but adjust based on your strategy
       start_at: sevenDaysFromNow,
