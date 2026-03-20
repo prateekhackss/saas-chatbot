@@ -1,6 +1,7 @@
 import { DashboardChrome } from "@/components/dashboard/dashboard-chrome";
 import { createClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, PlanTier } from "@/lib/constants/pricing";
+import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
   children,
@@ -35,6 +36,15 @@ export default async function DashboardLayout({
       .eq("is_active", true);
 
     if (clients && clients.length > 0) {
+      // Gatekeeping logic: If all clients are incomplete or canceled, force them to checkout
+      const hasActiveClient = clients.some((c: any) => 
+         ["active", "trialing", "past_due"].includes(c.subscription_status)
+      );
+
+      if (!hasActiveClient) {
+        redirect("/checkout");
+      }
+
       for (const client of clients) {
         const tier = (client.plan_tier || "starter") as PlanTier;
         const limit = PLAN_LIMITS[tier].maxMessages;
@@ -45,6 +55,9 @@ export default async function DashboardLayout({
           break; // Show warning for the first client near limit
         }
       }
+    } else {
+      // New users with no clients must also go through onboarding
+      redirect("/checkout");
     }
   }
 

@@ -70,11 +70,15 @@ export async function POST(req: NextRequest) {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
+    // Set start_at to 7 days from now for the free trial delay
+    const sevenDaysFromNow = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+
     // Create a Razorpay Subscription
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,
       customer_notify: 1, // Razorpay handles email notifications
       total_count: 12, // Usually 12 for monthly, but adjust based on your strategy
+      start_at: sevenDaysFromNow,
       notes: {
         clientId: client.id,
         userId: user.id,

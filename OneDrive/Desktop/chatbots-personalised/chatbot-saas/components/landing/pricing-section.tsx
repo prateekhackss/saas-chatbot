@@ -158,7 +158,7 @@ export function PricingSection({ clientId, userEmail }: { clientId?: string; use
               Simple, transparent pricing that scales with you.
             </h2>
             <p className="mt-4 text-lg leading-8 text-stone-300">
-              Start with a 14-day free trial on any plan. No credit card required. Upgrade when your traffic demands it.
+              Start with a 7-day free trial on any plan. Cancel anytime before the trial ends to avoid being charged.
             </p>
           </div>
 
@@ -262,7 +262,7 @@ export function PricingSection({ clientId, userEmail }: { clientId?: string; use
                 }`}
               >
                 {loadingPlan === plan.name ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {clientId ? "Upgrade Plan" : "Start free trial"}
+                {clientId ? "Upgrade Plan" : "Start 7-Day Free Trial"}
               </button>
             </div>
           ))}
