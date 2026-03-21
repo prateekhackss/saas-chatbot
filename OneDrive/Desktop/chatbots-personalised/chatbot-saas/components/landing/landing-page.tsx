@@ -8,12 +8,14 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
+  User,
   Zap,
 } from "lucide-react";
 
 import { LiveDemoLauncher } from "@/components/landing/live-demo-launcher";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/ui/logo";
 
 type DemoClient = {
@@ -85,6 +87,20 @@ export async function MarketingLandingPage() {
   const demoClient = await getDemoClient();
   const hostUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+  // Check if user is logged in
+  let isLoggedIn = false;
+  let userEmail = "";
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      isLoggedIn = true;
+      userEmail = user.email || "";
+    }
+  } catch {
+    // Not logged in
+  }
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,_#FAFAF9_0%,_#FFFFFF_36%,_#F5F5F4_100%)] text-stone-950">
       <header className="sticky top-0 z-50 border-b border-white/60 bg-white/80 backdrop-blur-xl">
@@ -106,18 +122,32 @@ export async function MarketingLandingPage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-stone-600 transition hover:text-stone-950"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="inline-flex h-10 items-center justify-center rounded-2xl bg-stone-950 px-4 text-sm font-semibold text-white transition hover:bg-stone-800"
-            >
-              Get Started
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/clients"
+                className="inline-flex items-center gap-2 rounded-2xl bg-stone-950 px-4 h-10 text-sm font-semibold text-white transition hover:bg-stone-800"
+              >
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-xs font-bold uppercase">
+                  {userEmail ? userEmail[0] : <User className="h-3.5 w-3.5" />}
+                </div>
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-medium text-stone-600 transition hover:text-stone-950"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex h-10 items-center justify-center rounded-2xl bg-stone-950 px-4 text-sm font-semibold text-white transition hover:bg-stone-800"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -150,7 +180,7 @@ export async function MarketingLandingPage() {
                   href="/signup"
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-6 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800"
                 >
-                  Start 14-Day Free Trial
+                  Start 7-Day Free Trial
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
