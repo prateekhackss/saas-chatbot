@@ -70,7 +70,7 @@ export type Database = {
         Row: {
           id: string;
           client_id: string;
-          razorpay_subscription_id: string;
+          lemon_subscription_id: string;
           plan_id: string;
           status: string;
           current_period_start: string | null;
@@ -81,7 +81,7 @@ export type Database = {
         Insert: {
           id?: string;
           client_id: string;
-          razorpay_subscription_id: string;
+          lemon_subscription_id: string;
           plan_id: string;
           status: string;
           current_period_start?: string | null;
@@ -92,7 +92,7 @@ export type Database = {
         Update: {
           id?: string;
           client_id?: string;
-          razorpay_subscription_id?: string;
+          lemon_subscription_id?: string;
           plan_id?: string;
           status?: string;
           current_period_start?: string | null;

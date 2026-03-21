@@ -1,12 +1,12 @@
 -- Add subscription_status to clients
-ALTER TABLE clients 
-ADD COLUMN subscription_status TEXT DEFAULT 'trialing' CHECK (subscription_status IN ('trialing', 'active', 'past_due', 'canceled', 'incomplete', 'incomplete_expired'));
+ALTER TABLE clients
+ADD COLUMN subscription_status TEXT DEFAULT 'trialing' CHECK (subscription_status IN ('trialing', 'active', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'paused'));
 
 -- Create subscriptions table
 CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-    razorpay_subscription_id TEXT UNIQUE NOT NULL,
+    lemon_subscription_id TEXT UNIQUE NOT NULL,
     plan_id TEXT NOT NULL,
     status TEXT NOT NULL,
     current_period_start TIMESTAMP WITH TIME ZONE,

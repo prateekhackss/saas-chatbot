@@ -2,7 +2,7 @@
 ALTER TABLE clients
 ALTER COLUMN subscription_status SET DEFAULT 'incomplete';
 
--- Update existing trialists without a real razorpay subscription if needed
+-- Update existing trialists without a real subscription if needed
 UPDATE clients 
 SET subscription_status = 'incomplete' 
 WHERE subscription_status = 'trialing' 

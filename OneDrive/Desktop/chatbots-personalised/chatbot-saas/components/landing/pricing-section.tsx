@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import Script from "next/script";
 import { useToast } from "@/components/ui/toast-provider";
 import { useRouter } from "next/navigation";
 
@@ -17,7 +15,7 @@ const pricingPlans = [
       "Perfect for a single-product business looking to automate basic support.",
     features: [
       "1 Custom Chatbot",
-      "1,000 messages/month",
+      "2,000 messages/month",
       "Train on up to 20 documents",
       "Basic widget branding",
       "7-day chat history retention",
@@ -34,11 +32,11 @@ const pricingPlans = [
       "The targeted growth plan with advanced analytics and integrations.",
     features: [
       "3 Custom Chatbots",
-      "5,000 messages/month",
+      "10,000 messages/month",
       "Train on up to 100 documents",
-      "Detailed analytics & topic clustering",
+      "Remove branding & custom widget colors",
       "Lead capture & human handoff alerts",
-      "Slack integration & custom widget colors",
+      "Slack integration & analytics",
     ],
     highlighted: true,
   },
@@ -51,7 +49,7 @@ const pricingPlans = [
       "For agencies and high-volume teams requiring white-label control.",
     features: [
       "10 Custom Chatbots",
-      "20,000 messages/month",
+      "50,000 messages/month",
       "Unlimited training documents",
       "White-label branding (no branding)",
       "Full API access & custom domains",
@@ -76,7 +74,7 @@ export function PricingSection({ clientId, userEmail }: { clientId?: string; use
     setLoadingPlan(plan.name);
 
     try {
-      // 1. Create Subscription
+      // 1. Create LemonSqueezy Checkout
       const res = await fetch("/api/billing/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -87,64 +85,23 @@ export function PricingSection({ clientId, userEmail }: { clientId?: string; use
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create subscription");
+      if (!res.ok) throw new Error(data.error || "Failed to create checkout");
 
-      // 2. Initialize Razorpay Checkout
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        subscription_id: data.subscriptionId,
-        name: "NexusChat",
-        description: `${plan.name} Plan Subscription`,
-        prefill: {
-          email: userEmail || "",
-        },
-        handler: async function (response: any) {
-          try {
-            pushToast({ title: "Processing payment..." });
-            
-            // 3. Verify Signature
-            const verifyRes = await fetch("/api/billing/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_subscription_id: response.razorpay_subscription_id,
-                razorpay_signature: response.razorpay_signature,
-                plan_id: plan.planId,
-                client_id: clientId,
-              }),
-            });
+      // 2. Redirect to LemonSqueezy hosted checkout page
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No checkout URL received");
+      }
 
-            if (!verifyRes.ok) throw new Error("Verification failed");
-            
-            pushToast({ title: "Subscription active!", description: "Welcome to Premium.", variant: "success" });
-            router.refresh();
-          } catch (err: any) {
-             pushToast({ title: "Payment verified but UI sync failed", description: err.message, variant: "error" });
-          }
-        },
-        theme: {
-          color: "#e11d48", // rose-600
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        pushToast({ title: "Payment Failed", description: response.error.description, variant: "error" });
-      });
-      rzp.open();
-      
     } catch (error: any) {
       pushToast({ title: "Checkout Error", description: error.message, variant: "error" });
-    } finally {
       setLoadingPlan(null);
     }
   };
 
   return (
-    <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-      <section
+    <section
       id="pricing"
       className="border-t border-stone-200 bg-stone-950 px-4 py-24 text-white sm:px-6 lg:px-8"
     >
@@ -269,6 +226,5 @@ export function PricingSection({ clientId, userEmail }: { clientId?: string; use
         </div>
       </div>
     </section>
-    </>
   );
 }

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Razorpay from "razorpay";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-const createSubscriptionSchema = z.object({
-  planId: z.string().min(1, "Razorpay Plan ID is required"),
+const createCheckoutSchema = z.object({
+  planId: z.string().min(1, "Plan ID is required"),
   clientId: z.string().uuid("Invalid Client ID"),
 });
 
@@ -23,7 +22,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const result = createSubscriptionSchema.safeParse(body);
+    const result = createCheckoutSchema.safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(
@@ -34,21 +33,20 @@ export async function POST(req: NextRequest) {
 
     const { planId, clientId } = result.data;
 
-    // Razorpay generates random Plan IDs (e.g. plan_MaZ1x2y3). 
-    // We map our frontend plan string (e.g. 'starter_monthly') to the environment variables
-    const planToEnvMap: Record<string, string | undefined> = {
-      "starter_monthly": process.env.RAZORPAY_PLAN_STARTER_MONTHLY,
-      "starter_annual": process.env.RAZORPAY_PLAN_STARTER_ANNUAL,
-      "pro_monthly": process.env.RAZORPAY_PLAN_PRO_MONTHLY,
-      "pro_annual": process.env.RAZORPAY_PLAN_PRO_ANNUAL,
-      "business_monthly": process.env.RAZORPAY_PLAN_BUSINESS_MONTHLY,
-      "business_annual": process.env.RAZORPAY_PLAN_BUSINESS_ANNUAL,
+    // Map frontend plan strings to LemonSqueezy Variant IDs from environment variables
+    const planToVariantMap: Record<string, string | undefined> = {
+      "starter_monthly": process.env.LEMONSQUEEZY_VARIANT_STARTER_MONTHLY,
+      "starter_annual": process.env.LEMONSQUEEZY_VARIANT_STARTER_ANNUAL,
+      "pro_monthly": process.env.LEMONSQUEEZY_VARIANT_PRO_MONTHLY,
+      "pro_annual": process.env.LEMONSQUEEZY_VARIANT_PRO_ANNUAL,
+      "business_monthly": process.env.LEMONSQUEEZY_VARIANT_BUSINESS_MONTHLY,
+      "business_annual": process.env.LEMONSQUEEZY_VARIANT_BUSINESS_ANNUAL,
     };
 
-    const razorpayEquivalentPlanId = planToEnvMap[planId];
+    const variantId = planToVariantMap[planId];
 
-    if (!razorpayEquivalentPlanId) {
-      console.error(`Missing Razorpay Plan ID in .env for ${planId}`);
+    if (!variantId) {
+      console.error(`Missing LemonSqueezy Variant ID in .env for ${planId}`);
       return NextResponse.json(
         { error: "Plan configuration missing in environment" },
         { status: 500 }
@@ -77,55 +75,88 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      console.error("Missing Razorpay Keys in Environment Variables");
+    if (!process.env.LEMONSQUEEZY_API_KEY || !process.env.LEMONSQUEEZY_STORE_ID) {
+      console.error("Missing LemonSqueezy API Key or Store ID");
       return NextResponse.json(
         { error: "Payment gateway configuration error" },
         { status: 500 }
       );
     }
 
-    // Initialize Razorpay
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
+    // Determine the app URL for redirects
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nexuschat.prateekhacks.in";
 
-    // Set start_at to 7 days from now for the free trial delay
-    const sevenDaysFromNow = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-
-    // Create a Razorpay Subscription
-    const subscription = await razorpay.subscriptions.create({
-      plan_id: razorpayEquivalentPlanId,
-      customer_notify: 1, // Razorpay handles email notifications
-      total_count: 12, // Usually 12 for monthly, but adjust based on your strategy
-      start_at: sevenDaysFromNow,
-      notes: {
-        clientId: client.id,
-        userId: user.id,
+    // Create a LemonSqueezy Checkout via API
+    const checkoutResponse = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
+      method: "POST",
+      headers: {
+        "Accept": "application/vnd.api+json",
+        "Content-Type": "application/vnd.api+json",
+        "Authorization": `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
       },
+      body: JSON.stringify({
+        data: {
+          type: "checkouts",
+          attributes: {
+            checkout_data: {
+              email: user.email || "",
+              custom: {
+                client_id: clientId,
+                user_id: user.id,
+                plan_id: planId,
+              },
+            },
+            checkout_options: {
+              embed: false,
+              media: false,
+              button_color: "#e11d48",
+            },
+            product_options: {
+              name: `NexusChat - ${planId.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())} Plan`,
+              redirect_url: `${appUrl}/clients/${clientId}/billing?payment=success`,
+            },
+            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          relationships: {
+            store: {
+              data: {
+                type: "stores",
+                id: process.env.LEMONSQUEEZY_STORE_ID,
+              },
+            },
+            variant: {
+              data: {
+                type: "variants",
+                id: variantId,
+              },
+            },
+          },
+        },
+      }),
     });
 
-    if (!subscription || !subscription.id) {
-      throw new Error("Failed to generate Razorpay subscription");
-    }
-
-    // Return the subscription ID to the frontend to launch standard checkout
-    return NextResponse.json({
-      subscriptionId: subscription.id,
-    });
-
-  } catch (error: any) {
-    console.error("Create Subscription Error:", error);
-    
-    // Razorpay specific error handling
-    if (error.statusCode) {
-       return NextResponse.json(
-        { error: error.error?.description || "Razorpay API Error" },
-        { status: error.statusCode }
+    if (!checkoutResponse.ok) {
+      const errorData = await checkoutResponse.json();
+      console.error("LemonSqueezy Checkout Error:", JSON.stringify(errorData));
+      return NextResponse.json(
+        { error: "Failed to create checkout session" },
+        { status: 500 }
       );
     }
 
+    const checkoutData = await checkoutResponse.json();
+    const checkoutUrl = checkoutData.data?.attributes?.url;
+
+    if (!checkoutUrl) {
+      throw new Error("No checkout URL returned from LemonSqueezy");
+    }
+
+    return NextResponse.json({
+      checkoutUrl,
+    });
+
+  } catch (error: any) {
+    console.error("Create Checkout Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

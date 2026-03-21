@@ -17,7 +17,7 @@ export const PLAN_LIMITS: Record<
   }
 > = {
   starter: {
-    maxMessages: 1000,
+    maxMessages: 2000,
     maxDocs: 20,
     maxBots: 1,
     features: {
@@ -30,11 +30,11 @@ export const PLAN_LIMITS: Record<
     },
   },
   pro: {
-    maxMessages: 5000,
+    maxMessages: 10000,
     maxDocs: 100,
     maxBots: 3,
     features: {
-      removeBranding: false,
+      removeBranding: true,
       apiAccess: false,
       slackIntegration: true,
       humanHandoff: true,
@@ -43,7 +43,7 @@ export const PLAN_LIMITS: Record<
     },
   },
   business: {
-    maxMessages: 20000,
+    maxMessages: 50000,
     maxDocs: 999999, // Unlimited
     maxBots: 10,
     features: {

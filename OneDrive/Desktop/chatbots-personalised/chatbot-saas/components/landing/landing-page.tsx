@@ -167,7 +167,7 @@ export async function MarketingLandingPage() {
               <div className="mt-8 flex flex-wrap items-center gap-6 animate-fade-in-up animation-delay-500">
                 <div className="flex items-center gap-2 text-sm text-stone-500">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  Payments secured by Razorpay
+                  Payments secured by Stripe
                 </div>
                 <div className="flex items-center gap-2 text-sm text-stone-500">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600 border border-stone-200">
