@@ -50,7 +50,7 @@ export function AnimatedAuth({
           <div className="relative">
             <Logo size="md" showTagline={true} className="items-start" />
             
-            <div className="relative mt-16 h-48 w-full max-w-md">
+            <div className="relative mt-16 min-h-[12rem] w-full max-w-md">
               {/* Login Info fade */}
               <div className={`transition-all duration-500 absolute inset-0 ${isLogin ? 'opacity-100 translate-y-0 z-10 delay-150' : 'opacity-0 translate-y-4 -z-10'}`}>
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#EF4444]/20 bg-[#EF4444]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#EF4444] mb-6">
@@ -68,7 +68,7 @@ export function AnimatedAuth({
                   New Account
                 </div>
                 <h1 className="text-4xl font-semibold tracking-tight mb-6">Create your dashboard account</h1>
-                <p className="text-base leading-7 text-neutral-300">Start your 14-day free trial. No credit card required. Build your NexusChat workspace and manage branded AI deployments from one place.</p>
+                <p className="text-base leading-7 text-neutral-300">Start your 7-day free trial. No credit card required. Build your NexusChat workspace and manage branded AI deployments from one place.</p>
               </div>
             </div>
           </div>
