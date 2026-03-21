@@ -135,9 +135,10 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (sessionConvo) {
-      const updatedAt = new Date(sessionConvo.updated_at).getTime();
+      const convo = sessionConvo as { message_count: number; updated_at: string };
+      const updatedAt = new Date(convo.updated_at).getTime();
       const isWithinHour = updatedAt > Date.now() - 60 * 60 * 1000;
-      if (isWithinHour && sessionConvo.message_count > SESSION_RATE_LIMIT) {
+      if (isWithinHour && convo.message_count > SESSION_RATE_LIMIT) {
         return NextResponse.json(
           { error: 'You are sending messages too quickly. Please wait a few minutes.' },
           { status: 429 }
