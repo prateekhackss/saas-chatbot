@@ -68,7 +68,7 @@ export function AnimatedAuth({
                   New Account
                 </div>
                 <h1 className="text-4xl font-semibold tracking-tight mb-6">Create your dashboard account</h1>
-                <p className="text-base leading-7 text-neutral-300">Start your 7-day free trial. No credit card required. Build your NexusChat workspace and manage branded AI deployments from one place.</p>
+                <p className="text-base leading-7 text-neutral-300">Start your 7-day free trial. Build your NexusChat workspace and manage branded AI deployments from one place.</p>
               </div>
             </div>
           </div>

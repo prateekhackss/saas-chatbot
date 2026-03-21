@@ -191,13 +191,13 @@ export async function MarketingLandingPage() {
                 </Link>
               </div>
               <p className="mt-4 text-sm font-medium text-stone-500 animate-fade-in-up animation-delay-450">
-                No credit card required. Cancel anytime.
+                7-day free trial. Cancel anytime.
               </p>
 
               <div className="mt-8 flex flex-wrap items-center gap-6 animate-fade-in-up animation-delay-500">
                 <div className="flex items-center gap-2 text-sm text-stone-500">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  Payments secured by Stripe
+                  Secure payments via Stripe & PayPal
                 </div>
                 <div className="flex items-center gap-2 text-sm text-stone-500">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-stone-100 text-[10px] font-bold text-stone-600 border border-stone-200">

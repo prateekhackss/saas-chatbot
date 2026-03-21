@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+// Sanitize CSV values to prevent formula injection attacks
+function sanitizeCsvValue(value: string): string {
+  if (!value) return '';
+  // Prefix dangerous characters that could trigger Excel formula execution
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
+  }
+  return value.replace(/"/g, '""');
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -35,7 +45,7 @@ export async function GET(req: NextRequest) {
       if (format === 'csv') {
         const csvRows = ['Name,Email,Session ID,Captured At'];
         for (const lead of (leads || [])) {
-          csvRows.push(`"${lead.name || ''}","${lead.email}","${lead.session_id}","${lead.captured_at}"`);
+          csvRows.push(`"${sanitizeCsvValue(lead.name || '')}","${sanitizeCsvValue(lead.email)}","${lead.session_id}","${lead.captured_at}"`);
         }
         return new NextResponse(csvRows.join('\n'), {
           headers: {
@@ -62,7 +72,7 @@ export async function GET(req: NextRequest) {
       for (const conv of (conversations || [])) {
         const msgs = Array.isArray(conv.messages) ? conv.messages : [];
         const firstQ = msgs.find((m: any) => m.role === 'user')?.content || '';
-        const escaped = firstQ.replace(/"/g, '""').replace(/\n/g, ' ');
+        const escaped = sanitizeCsvValue(firstQ.replace(/\n/g, ' '));
         csvRows.push(`"${conv.session_id}","${conv.created_at}",${conv.message_count},${conv.resolved},"${escaped}"`);
       }
       

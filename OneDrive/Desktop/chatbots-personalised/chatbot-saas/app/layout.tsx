@@ -30,6 +30,22 @@ export const metadata: Metadata = {
   title: "NexusChat - AI Customer Support Chatbots",
   description:
     "Deploy custom AI chatbots trained on your business content. Instant setup, polished embeds, and fast support workflows.",
+  openGraph: {
+    title: "NexusChat - AI Customer Support Chatbots",
+    description: "Deploy custom AI chatbots trained on your business content. Instant setup, polished embeds, and fast support workflows.",
+    url: "https://nexuschat.prateekhacks.in",
+    siteName: "NexusChat",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NexusChat - AI Customer Support Chatbots",
+    description: "Deploy custom AI chatbots trained on your business content. Instant setup, polished embeds, and fast support workflows.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

@@ -373,12 +373,14 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
               </button>
             </form>
 
-            <div className="mt-2.5 mb-0.5 flex w-full items-center justify-center gap-1 text-center text-[10px] font-medium tracking-wide text-gray-400 opacity-80">
-              Powered by
-              <span className="flex items-center font-bold text-gray-500">
-                NexusChat
-              </span>
-            </div>
+            {!config.removeBranding && (
+              <div className="mt-2.5 mb-0.5 flex w-full items-center justify-center gap-1 text-center text-[10px] font-medium tracking-wide text-gray-400 opacity-80">
+                Powered by
+                <span className="flex items-center font-bold text-gray-500">
+                  NexusChat
+                </span>
+              </div>
+            )}
           </div>
         </>
       )}

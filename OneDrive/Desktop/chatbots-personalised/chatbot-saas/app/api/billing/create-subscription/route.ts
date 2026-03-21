@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Determine the app URL for redirects
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nexuschat.prateekhacks.in";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     // Create a LemonSqueezy Checkout via API
     const checkoutResponse = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {

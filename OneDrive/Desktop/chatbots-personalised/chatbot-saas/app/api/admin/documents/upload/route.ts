@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/admin/documents/upload
  * Accepts a file (PDF, TXT, MD, CSV, DOCX) via multipart form-data
  * and returns the extracted plain-text content for the client to use.
+ * Requires authentication.
  */
 export async function POST(req: NextRequest) {
   try {
+    // Auth check — reject unauthenticated requests
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
