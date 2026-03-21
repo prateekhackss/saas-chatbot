@@ -115,7 +115,6 @@ export async function POST(req: NextRequest) {
               name: `NexusChat - ${planId.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())} Plan`,
               redirect_url: `${appUrl}/clients/${clientId}/billing?payment=success`,
             },
-            trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           },
           relationships: {
             store: {
