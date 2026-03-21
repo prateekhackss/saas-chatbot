@@ -60,7 +60,19 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 });
     }
 
-    const body = await req.json();
+    // Reject oversized request bodies (max 50KB)
+    const contentLength = parseInt(req.headers.get('content-length') || '0');
+    if (contentLength > 50 * 1024) {
+      return NextResponse.json({ error: 'Request body too large' }, { status: 413 });
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
     const { clientSlug, sessionId, history, message, messages } = body;
     const normalizedSdkMessages = normalizeMessages(messages);
     const normalizedHistory = normalizeMessages(history);

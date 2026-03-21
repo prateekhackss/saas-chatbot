@@ -2,11 +2,24 @@
 const nextConfig = {
   async headers() {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    // Security headers applied to all routes
+    const securityHeaders = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "X-DNS-Prefetch-Control", value: "on" },
+    ];
+
     return [
       {
-        // Chat API — CORS handled dynamically in the route handler itself
-        // to validate against each client's allowedOrigins config.
-        // These headers are a fallback for the widget iframe embedding.
+        // Apply security headers to all routes
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+      {
+        // Chat API — CORS restricted to app URL
         source: "/api/chat",
         headers: [
           { key: "Access-Control-Allow-Origin", value: appUrl },
@@ -24,7 +37,7 @@ const nextConfig = {
         ],
       },
       {
-        // Widget iframe — must be embeddable on any domain
+        // Widget iframe — must be embeddable on any domain (override X-Frame-Options)
         source: "/widget/:path*",
         headers: [
           { key: "Access-Control-Allow-Origin", value: "*" },
