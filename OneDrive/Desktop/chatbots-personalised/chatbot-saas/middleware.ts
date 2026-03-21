@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/forgot-password", "/reset-password", "/favicon.ico", "/embed.js", "/checkout"]);
 const PUBLIC_PREFIXES = ["/api/chat", "/api/embed", "/api/leads", "/widget", "/auth", "/_next"];
-const PROTECTED_PREFIXES = ["/clients", "/dashboard"];
-const PUBLIC_FILE = /\.[^/]+$/;
+const PROTECTED_PREFIXES = ["/clients", "/dashboard", "/api/admin"];
+const PUBLIC_FILE = /\.(?:ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|map)$/;
 
 function isPublicPath(pathname: string) {
   if (PUBLIC_ROUTES.has(pathname)) {
@@ -73,9 +73,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user && isProtectedPath(pathname)) {
+    // API routes get 401, pages get redirected to login
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("next", `${pathname}${search}`);
+    // Validate next param to prevent open redirect
+    const nextPath = `${pathname}${search}`;
+    if (nextPath.startsWith("/") && !nextPath.startsWith("//")) {
+      loginUrl.searchParams.set("next", nextPath);
+    }
     return NextResponse.redirect(loginUrl);
   }
 

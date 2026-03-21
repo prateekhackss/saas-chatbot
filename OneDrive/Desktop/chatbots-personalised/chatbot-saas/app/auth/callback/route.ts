@@ -7,7 +7,11 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const token_hash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type");
-  const next = requestUrl.searchParams.get("next") || "/clients";
+  // Validate next parameter to prevent open redirect attacks
+  let next = requestUrl.searchParams.get("next") || "/clients";
+  if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) {
+    next = "/clients";
+  }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
