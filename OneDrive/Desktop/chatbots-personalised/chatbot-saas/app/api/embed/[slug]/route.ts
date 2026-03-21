@@ -68,9 +68,26 @@ export async function GET(
       );
     }
 
-    // Safely return only the public configuration rules
-    // (We omit database IDs, secrets, etc.)
-    return NextResponse.json({ config: client.config }, { status: 200 });
+    // Safely return only the PUBLIC-SAFE configuration
+    // Strip sensitive fields that should never be exposed to the widget
+    const safeConfig = {
+      brandName: client.config.brandName,
+      welcomeMessage: client.config.welcomeMessage,
+      primaryColor: client.config.primaryColor,
+      textColor: client.config.textColor,
+      position: client.config.position,
+      tone: client.config.tone,
+      fallbackMessage: client.config.fallbackMessage,
+      logoUrl: client.config.logoUrl,
+      suggestedQuestions: client.config.suggestedQuestions,
+      removeBranding: client.config.removeBranding || false,
+      leadCaptureEnabled: client.config.leadCaptureEnabled || false,
+      leadCaptureMessage: client.config.leadCaptureMessage || '',
+      offlineMessage: client.config.offlineMessage || '',
+      businessHours: client.config.businessHours || null,
+      // INTENTIONALLY EXCLUDED: handoffWebhookUrl, allowedOrigins (server-only)
+    };
+    return NextResponse.json({ config: safeConfig }, { status: 200 });
     
   } catch (error) {
     console.error('Embed API Error:', error);

@@ -21,6 +21,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
+    // Verify client ownership (RLS handles this, but explicit check is defense-in-depth)
+    const { data: ownedClient, error: ownershipError } = await db
+      .from('clients')
+      .select('id')
+      .eq('id', clientId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (ownershipError || !ownedClient) {
+      return NextResponse.json({ error: 'Client not found or access denied' }, { status: 403 });
+    }
+
     // Calculate the date X days ago
     const dateLimit = new Date();
     dateLimit.setDate(dateLimit.getDate() - days);

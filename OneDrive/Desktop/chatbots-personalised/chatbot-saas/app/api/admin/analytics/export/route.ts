@@ -31,6 +31,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Client ID is required' }, { status: 400 });
     }
 
+    // Verify client ownership (defense-in-depth alongside RLS)
+    const { data: ownedClient, error: ownershipError } = await db
+      .from('clients')
+      .select('id')
+      .eq('id', clientId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (ownershipError || !ownedClient) {
+      return NextResponse.json({ error: 'Client not found or access denied' }, { status: 403 });
+    }
+
     if (type === 'leads') {
       const { data: leads, error } = await db
         .from('leads')

@@ -6,7 +6,11 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 function verifyWebhookSignature(rawBody: string, signature: string, secret: string): boolean {
   const hmac = crypto.createHmac("sha256", secret);
   const digest = hmac.update(rawBody).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature));
+  // timingSafeEqual throws if lengths differ — guard against that
+  const digestBuf = Buffer.from(digest, "utf8");
+  const sigBuf = Buffer.from(signature, "utf8");
+  if (digestBuf.length !== sigBuf.length) return false;
+  return crypto.timingSafeEqual(digestBuf, sigBuf);
 }
 
 export async function POST(req: NextRequest) {
