@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   if (user) {
     const { data: clients } = await db
       .from("clients")
-      .select("plan_tier, messages_this_month, name")
+      .select("plan_tier, messages_this_month, name, subscription_status")
       .eq("user_id", user.id)
       .eq("is_active", true);
 
