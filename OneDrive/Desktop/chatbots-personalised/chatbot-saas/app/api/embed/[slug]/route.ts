@@ -47,47 +47,57 @@ export async function GET(
 
     const { slug } = await params;
     
-    if (!slug) {
-      return NextResponse.json({ error: 'Missing client slug' }, { status: 400 });
+    if (!slug || slug.length > 100 || !/^[a-z0-9-]+$/.test(slug)) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    // Use standard client. Our RLS policies allow public SELECT on active client configs.
+    // Use the secure VIEW instead of querying clients table directly
+    // This prevents leaking sensitive config fields even if RLS is bypassed
     const supabase = await createClient();
     const db = supabase as any;
 
     const { data: client, error } = await db
-      .from('clients')
-      .select('config, is_active')
+      .from('public_client_configs')
+      .select('safe_config, is_active')
       .eq('slug', slug)
       .single();
 
     if (error || !client || !client.is_active) {
-      return NextResponse.json(
-        { error: 'Client not found or inactive' },
-        { status: 404 }
-      );
+      // Fallback: try clients table with manual field stripping
+      // (in case view doesn't exist yet / migration not run)
+      const { data: fallbackClient, error: fbError } = await db
+        .from('clients')
+        .select('config, is_active')
+        .eq('slug', slug)
+        .single();
+
+      if (fbError || !fallbackClient || !fallbackClient.is_active) {
+        return NextResponse.json(
+          { error: 'Client not found or inactive' },
+          { status: 404 }
+        );
+      }
+
+      const safeConfig = {
+        brandName: fallbackClient.config.brandName,
+        welcomeMessage: fallbackClient.config.welcomeMessage,
+        primaryColor: fallbackClient.config.primaryColor,
+        textColor: fallbackClient.config.textColor,
+        position: fallbackClient.config.position,
+        tone: fallbackClient.config.tone,
+        fallbackMessage: fallbackClient.config.fallbackMessage,
+        logoUrl: fallbackClient.config.logoUrl,
+        suggestedQuestions: fallbackClient.config.suggestedQuestions,
+        removeBranding: fallbackClient.config.removeBranding || false,
+        leadCaptureEnabled: fallbackClient.config.leadCaptureEnabled || false,
+        leadCaptureMessage: fallbackClient.config.leadCaptureMessage || '',
+        offlineMessage: fallbackClient.config.offlineMessage || '',
+        businessHours: fallbackClient.config.businessHours || null,
+      };
+      return NextResponse.json({ config: safeConfig }, { status: 200 });
     }
 
-    // Safely return only the PUBLIC-SAFE configuration
-    // Strip sensitive fields that should never be exposed to the widget
-    const safeConfig = {
-      brandName: client.config.brandName,
-      welcomeMessage: client.config.welcomeMessage,
-      primaryColor: client.config.primaryColor,
-      textColor: client.config.textColor,
-      position: client.config.position,
-      tone: client.config.tone,
-      fallbackMessage: client.config.fallbackMessage,
-      logoUrl: client.config.logoUrl,
-      suggestedQuestions: client.config.suggestedQuestions,
-      removeBranding: client.config.removeBranding || false,
-      leadCaptureEnabled: client.config.leadCaptureEnabled || false,
-      leadCaptureMessage: client.config.leadCaptureMessage || '',
-      offlineMessage: client.config.offlineMessage || '',
-      businessHours: client.config.businessHours || null,
-      // INTENTIONALLY EXCLUDED: handoffWebhookUrl, allowedOrigins (server-only)
-    };
-    return NextResponse.json({ config: safeConfig }, { status: 200 });
+    return NextResponse.json({ config: client.safe_config }, { status: 200 });
     
   } catch (error) {
     console.error('Embed API Error:', error);

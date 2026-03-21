@@ -12,15 +12,16 @@ export const dynamic = 'force-dynamic';
 // Compile to Vercel Edge Runtime to eliminate Node.js cold-start latency
 export const runtime = 'edge';
 
-// WARNING: This in-memory rate limiter does NOT persist across serverless invocations.
-// It only works within a single warm instance. For production, replace with:
+// Rate Limiter: Two layers
+// Layer 1: In-memory (catches bursts within same instance)
+// Layer 2: Database-level message count (catches abuse across instances)
+// For production at scale, replace with Upstash Redis:
 // import { Ratelimit } from '@upstash/ratelimit'
 // import { Redis } from '@upstash/redis'
-// const ratelimit = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(20, '60 s') })
-// Lightweight In-Memory Rate Limiter (Note: In a multi-region Edge deployment, using Redis/Upstash is preferred)
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const RATE_LIMIT = 20; // max requests per window
+const RATE_LIMIT = 10; // max requests per minute per IP (reduced from 20)
 const WINDOW_MS = 60 * 1000; // 1 minute window
+const SESSION_RATE_LIMIT = 30; // max messages per session per hour (DB-enforced)
 
 function sanitizeUserInput(input: string): string {
   // Strip common injection patterns but keep the message readable
@@ -124,7 +125,27 @@ export async function POST(req: NextRequest) {
     const clientId = client.id;
     const clientConfig = client.config as ClientConfig;
 
-    // 1.5. Validate Usage Limits (Part 6 Metering)
+    // 1.5a. Per-session rate limit (DB-enforced, survives cold starts)
+    // Check if this session has sent too many messages in the last hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: sessionConvo } = await supabase
+      .from('conversations')
+      .select('message_count, updated_at')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (sessionConvo) {
+      const updatedAt = new Date(sessionConvo.updated_at).getTime();
+      const isWithinHour = updatedAt > Date.now() - 60 * 60 * 1000;
+      if (isWithinHour && sessionConvo.message_count > SESSION_RATE_LIMIT) {
+        return NextResponse.json(
+          { error: 'You are sending messages too quickly. Please wait a few minutes.' },
+          { status: 429 }
+        );
+      }
+    }
+
+    // 1.5b. Validate Usage Limits (Part 6 Metering)
     const planTier = (client.plan_tier || 'starter') as PlanTier;
     const messagesUsed = client.messages_this_month || 0;
     const messageLimit = PLAN_LIMITS[planTier].maxMessages;

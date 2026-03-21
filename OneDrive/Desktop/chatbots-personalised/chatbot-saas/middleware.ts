@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/forgot-password", "/reset-password", "/favicon.ico", "/embed.js"]);
+const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/forgot-password", "/reset-password", "/favicon.ico", "/embed.js", "/checkout"]);
 const PUBLIC_PREFIXES = ["/api/chat", "/api/embed", "/api/leads", "/widget", "/auth", "/_next"];
 const PROTECTED_PREFIXES = ["/clients", "/dashboard"];
 const PUBLIC_FILE = /\.[^/]+$/;
@@ -84,6 +84,30 @@ export async function middleware(request: NextRequest) {
     dashboardUrl.pathname = "/clients";
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
+  }
+
+  // Subscription gate: If user is authenticated and accessing protected routes,
+  // check if they have an active subscription. Skip for billing/checkout pages.
+  if (user && isProtectedPath(pathname) && !pathname.includes('/billing') && pathname !== '/checkout') {
+    const db = supabase as any;
+    const { data: clients } = await db
+      .from('clients')
+      .select('id, subscription_status')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    const client = clients?.[0];
+
+    // If user has a client but no active/trialing subscription, redirect to checkout
+    if (client && !['active', 'trialing'].includes(client.subscription_status)) {
+      // Allow access to billing page so they can subscribe
+      if (!pathname.includes('/billing')) {
+        const checkoutUrl = request.nextUrl.clone();
+        checkoutUrl.pathname = '/checkout';
+        checkoutUrl.search = '';
+        return NextResponse.redirect(checkoutUrl);
+      }
+    }
   }
 
   return response;
