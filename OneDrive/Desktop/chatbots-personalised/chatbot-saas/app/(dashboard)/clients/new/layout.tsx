@@ -18,6 +18,19 @@ export default async function NewClientLayout({
     redirect("/login");
   }
 
+  // Check if user is admin — admins bypass all subscription gates
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  const isAdmin = profile?.role === "admin";
+
+  // Admins can always create clients
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
   // Check if user has an active subscription
   const { data: clients } = await db
     .from("clients")
@@ -28,7 +41,7 @@ export default async function NewClientLayout({
     ["active", "trialing", "past_due"].includes(c.subscription_status)
   );
 
-  // First-time user with no clients at all — allow them through (they'll create their first client after subscribing via checkout)
+  // First-time user with no clients at all — allow them through
   // User with expired/cancelled clients — block them
   if (clients && clients.length > 0 && !hasActiveSub) {
     return (

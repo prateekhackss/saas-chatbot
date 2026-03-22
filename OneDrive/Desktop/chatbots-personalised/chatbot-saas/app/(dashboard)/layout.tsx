@@ -77,8 +77,8 @@ export default async function DashboardLayout({
           </div>
         )}
 
-        {/* Subscription banner — show when user has no active plan */}
-        {!hasActiveSubscription && (
+        {/* Subscription banner — only for regular users, not admins */}
+        {!hasActiveSubscription && !isAdmin && (
           <div className="mb-6 flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm shadow-sm">
             <div className="flex items-center gap-2 text-rose-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
