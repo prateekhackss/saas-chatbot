@@ -108,7 +108,7 @@ export default async function NewClientLayout({
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/checkout"
+              href="/checkout?upgrade=true"
               className="inline-flex h-12 items-center gap-2 rounded-2xl bg-stone-950 px-6 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800"
             >
               <Sparkles className="h-4 w-4" />
