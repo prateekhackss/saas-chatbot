@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createNotification } from '@/lib/notifications';
 import { z } from 'zod';
 
 const leadSchema = z.object({
@@ -21,10 +22,10 @@ export async function POST(req: NextRequest) {
     const { clientSlug, sessionId, name, email } = result.data;
     const supabase = createAdminClient();
     
-    // Get client ID from slug
+    // Get client ID and owner from slug
     const { data: client } = await (supabase as any)
       .from('clients')
-      .select('id, is_active')
+      .select('id, name, user_id, is_active')
       .eq('slug', clientSlug)
       .eq('is_active', true)
       .maybeSingle();
@@ -52,6 +53,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to save' }, { status: 500 });
     }
     
+    // Notify bot owner about new lead (fire and forget)
+    createNotification({
+      userId: client.user_id,
+      type: "lead_captured",
+      title: "New Lead Captured",
+      message: `${name || "A visitor"} (${email}) submitted their contact info on ${client.name}.`,
+      clientId: client.id,
+    }).catch(() => {});
+
     return NextResponse.json({ message: 'Thank you!' }, { status: 201 });
   } catch (error) {
     console.error('Lead API Error:', error);

@@ -5,6 +5,7 @@ import { embedText } from '@/lib/ai/embeddings';
 import { streamChatResponse, type ChatHistoryMessage } from '@/lib/ai/groq';
 import { ClientConfig } from '@/types/database';
 import { PLAN_LIMITS, PlanTier } from '@/lib/constants/pricing';
+import { createNotification } from '@/lib/notifications';
 
 // Opt out of caching; this must be dynamic for real-time chat
 export const dynamic = 'force-dynamic';
@@ -124,7 +125,7 @@ export async function POST(req: NextRequest) {
     // 1. Validate Client & Get Config (Runs concurrently)
     const { data: rawClient, error: clientError } = await supabase
       .from('clients')
-      .select('id, config, is_active, plan_tier, messages_this_month, embed_token, allowed_origins')
+      .select('id, name, user_id, config, is_active, plan_tier, messages_this_month, embed_token, allowed_origins')
       .eq('slug', clientSlug)
       .single();
 
@@ -244,6 +245,34 @@ export async function POST(req: NextRequest) {
         // Increment the usage tracking metrics safely
         // @ts-ignore - Supabase type-gen mismatch
         await supabase.rpc('increment_client_messages', { target_client_id: clientId });
+
+        // --- In-App Notifications (fire and forget) ---
+        const ownerId = client.user_id;
+        const botName = client.name || clientSlug;
+
+        // Notify on first message of a new session (new conversation)
+        if (finalMessages.length <= 2) {
+          createNotification({
+            userId: ownerId,
+            type: "new_conversation",
+            title: "New Conversation",
+            message: `A visitor started chatting on ${botName}: "${latestUserMessage.slice(0, 80)}${latestUserMessage.length > 80 ? '...' : ''}"`,
+            clientId,
+          }).catch(() => {});
+        }
+
+        // Usage warning at 80% and 95% of message limit
+        const updatedUsage = messagesUsed + 1;
+        const usagePercent = Math.round((updatedUsage / messageLimit) * 100);
+        if (usagePercent === 80 || usagePercent === 95) {
+          createNotification({
+            userId: ownerId,
+            type: "usage_warning",
+            title: `Usage at ${usagePercent}%`,
+            message: `${botName} has used ${updatedUsage.toLocaleString()} of ${messageLimit.toLocaleString()} messages this month. ${usagePercent >= 95 ? "Upgrade soon to avoid interruptions." : "Consider upgrading for more capacity."}`,
+            clientId,
+          }).catch(() => {});
+        }
     });
 
     // The Vercel AI SDK provides `toDataStreamResponse()` which easily hooks into Next.js App Router
