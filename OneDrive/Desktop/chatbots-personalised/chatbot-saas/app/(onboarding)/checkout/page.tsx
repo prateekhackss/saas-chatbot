@@ -69,7 +69,7 @@ export default async function OnboardingCheckoutPage({
         </p>
       </div>
       <div className="w-full">
-         <PricingSection clientId={clientId} userEmail={user.email} />
+         <PricingSection clientId={clientId} userEmail={user.email} currentPlan={isActive ? (profile?.plan_tier || undefined) : undefined} />
       </div>
     </div>
   );

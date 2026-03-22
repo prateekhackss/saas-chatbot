@@ -5,6 +5,8 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/toast-provider";
 import { useRouter } from "next/navigation";
 
+const PLAN_ORDER = ["starter", "pro", "business"];
+
 const pricingPlans = [
   {
     name: "Starter",
@@ -209,30 +211,55 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
                 ))}
               </div>
 
-              {currentPlan?.toLowerCase() === plan.planId.toLowerCase() ? (
-                <div
-                  className={`mt-10 inline-flex h-12 w-full items-center justify-center rounded-2xl text-sm font-semibold border-2 ${
-                    plan.highlighted
-                      ? "border-rose-400 text-rose-600 bg-rose-50"
-                      : "border-emerald-400 text-emerald-400 bg-emerald-400/10"
-                  }`}
-                >
-                  ✓ Current Plan
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleCheckout(plan)}
-                  disabled={loadingPlan === plan.name}
-                  className={`mt-10 inline-flex h-12 w-full gap-2 items-center justify-center rounded-2xl text-sm font-semibold transition ${
-                    plan.highlighted
-                      ? "bg-stone-950 text-white shadow-xl shadow-stone-950/20 hover:bg-stone-800 disabled:bg-stone-800"
-                      : "bg-white text-stone-950 hover:bg-stone-100 disabled:opacity-75"
-                  }`}
-                >
-                  {loadingPlan === plan.name ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  {clientId ? "Upgrade Plan" : "Start 7-Day Free Trial"}
-                </button>
-              )}
+              {(() => {
+                const currentPlanIndex = currentPlan ? PLAN_ORDER.indexOf(currentPlan.toLowerCase()) : -1;
+                const thisPlanIndex = PLAN_ORDER.indexOf(plan.planId.toLowerCase());
+                const isCurrent = currentPlan?.toLowerCase() === plan.planId.toLowerCase();
+                const isDowngrade = currentPlanIndex >= 0 && thisPlanIndex < currentPlanIndex;
+
+                if (isCurrent) {
+                  return (
+                    <div
+                      className={`mt-10 inline-flex h-12 w-full items-center justify-center rounded-2xl text-sm font-semibold border-2 ${
+                        plan.highlighted
+                          ? "border-rose-400 text-rose-600 bg-rose-50"
+                          : "border-emerald-400 text-emerald-400 bg-emerald-400/10"
+                      }`}
+                    >
+                      Current Plan
+                    </div>
+                  );
+                }
+
+                if (isDowngrade) {
+                  return (
+                    <div
+                      className={`mt-10 inline-flex h-12 w-full items-center justify-center rounded-2xl text-sm font-medium border ${
+                        plan.highlighted
+                          ? "border-stone-200 text-stone-400 bg-stone-50"
+                          : "border-stone-700 text-stone-500 bg-stone-800/50"
+                      } cursor-not-allowed`}
+                    >
+                      Included in your plan
+                    </div>
+                  );
+                }
+
+                return (
+                  <button
+                    onClick={() => handleCheckout(plan)}
+                    disabled={loadingPlan === plan.name}
+                    className={`mt-10 inline-flex h-12 w-full gap-2 items-center justify-center rounded-2xl text-sm font-semibold transition ${
+                      plan.highlighted
+                        ? "bg-stone-950 text-white shadow-xl shadow-stone-950/20 hover:bg-stone-800 disabled:bg-stone-800"
+                        : "bg-white text-stone-950 hover:bg-stone-100 disabled:opacity-75"
+                    }`}
+                  >
+                    {loadingPlan === plan.name ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    {currentPlan ? "Upgrade Plan" : clientId ? "Start Free Trial" : "Start 7-Day Free Trial"}
+                  </button>
+                );
+              })()}
             </div>
           ))}
         </div>
