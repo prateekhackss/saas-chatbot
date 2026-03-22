@@ -68,7 +68,8 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
   const router = useRouter();
 
   const handleCheckout = async (plan: any) => {
-    if (!clientId) {
+    if (!userEmail) {
+      // Not logged in — send to signup
       router.push("/signup");
       return;
     }
@@ -82,7 +83,7 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId: plan.planId + (isAnnual ? "_annual" : "_monthly"),
-          clientId,
+          clientId: clientId || null,
         }),
       });
 
@@ -256,7 +257,7 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
                     }`}
                   >
                     {loadingPlan === plan.name ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    {currentPlan ? "Upgrade Plan" : clientId ? "Start Free Trial" : "Start 7-Day Free Trial"}
+                    {currentPlan ? "Upgrade Plan" : userEmail ? "Start Free Trial" : "Start 7-Day Free Trial"}
                   </button>
                 );
               })()}

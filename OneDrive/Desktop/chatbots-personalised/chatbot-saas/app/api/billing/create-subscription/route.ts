@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const createCheckoutSchema = z.object({
   planId: z.string().min(1, "Plan ID is required"),
-  clientId: z.string().uuid("Invalid Client ID"),
+  clientId: z.string().uuid("Invalid Client ID").optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -53,26 +53,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify the client belongs to this user
-    const { data: client, error: clientError } = await db
-      .from("clients")
-      .select("id, name, subscription_status")
-      .eq("id", clientId)
-      .eq("user_id", user.id)
-      .single();
+    // If clientId provided, verify ownership. Otherwise, check user-level subscription.
+    if (clientId) {
+      const { data: client, error: clientError } = await db
+        .from("clients")
+        .select("id, name, subscription_status")
+        .eq("id", clientId)
+        .eq("user_id", user.id)
+        .single();
 
-    if (clientError || !client) {
-      return NextResponse.json(
-        { error: "Client not found or access denied" },
-        { status: 404 }
-      );
+      if (clientError || !client) {
+        return NextResponse.json(
+          { error: "Client not found or access denied" },
+          { status: 404 }
+        );
+      }
     }
 
-    if (client.subscription_status === "active") {
-      return NextResponse.json(
-        { error: "Client is already on an active subscription" },
-        { status: 400 }
-      );
+    // Check user-level subscription (the real source of truth)
+    const { data: profile } = await db
+      .from("profiles")
+      .select("subscription_status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Block if user already has an active subscription (unless upgrading)
+    if (profile?.subscription_status === "active") {
+      // Allow — the upgrade flow handles plan changes via LemonSqueezy
     }
 
     if (!process.env.LEMONSQUEEZY_API_KEY || !process.env.LEMONSQUEEZY_STORE_ID) {
@@ -101,7 +108,7 @@ export async function POST(req: NextRequest) {
             checkout_data: {
               email: user.email || "",
               custom: {
-                client_id: clientId,
+                client_id: clientId || "",
                 user_id: user.id,
                 plan_id: planId,
               },
@@ -113,7 +120,9 @@ export async function POST(req: NextRequest) {
             },
             product_options: {
               name: `NexusChat - ${planId.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())} Plan`,
-              redirect_url: `${appUrl}/clients/${clientId}/billing?payment=success`,
+              redirect_url: clientId
+                ? `${appUrl}/clients/${clientId}/billing?payment=success`
+                : `${appUrl}/clients?payment=success`,
             },
           },
           relationships: {

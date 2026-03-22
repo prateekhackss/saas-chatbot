@@ -36,25 +36,14 @@ export default async function OnboardingCheckoutPage({
     redirect("/clients");
   }
 
-  // Get the default client for this user (needed to pass to pricing section for checkout)
+  // Get user's first client if they have one (optional — used for redirect after checkout)
   const { data: clients } = await db
     .from("clients")
     .select("id")
     .eq("user_id", user.id)
     .limit(1);
 
-  let clientId = clients?.[0]?.id;
-
-  // If the user doesn't have a default client workspace, create one automatically
-  if (!clientId) {
-    const { data: newClient } = await db.from("clients").insert({
-      user_id: user.id,
-      name: "My Workspace",
-      slug: `workspace-${Date.now()}`,
-    }).select("id").single();
-
-    clientId = newClient?.id;
-  }
+  const clientId = clients?.[0]?.id || null;
 
   return (
     <div className="min-h-screen bg-stone-950 flex flex-col items-center">
