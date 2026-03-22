@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { PLAN_LIMITS, PlanTier } from '@/lib/constants/pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,28 +45,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Check if user is admin — admins bypass subscription gate
+    // 2. Check if user is admin — admins bypass all gates
     const { data: profile } = await db
       .from('profiles')
-      .select('role')
+      .select('role, subscription_status, plan_tier')
       .eq('id', user.id)
       .maybeSingle();
     const isAdmin = profile?.role === 'admin';
 
-    // 3. Check subscription for non-admin users
+    // 3. Check user-level subscription for non-admin users
     if (!isAdmin) {
-      const { data: existingClients } = await db
-        .from('clients')
-        .select('id, subscription_status')
-        .eq('user_id', user.id);
-
-      const hasActiveSub = (existingClients || []).some((c: any) =>
-        ['active', 'trialing', 'past_due'].includes(c.subscription_status)
+      const hasActiveSub = ['active', 'trialing', 'past_due'].includes(
+        profile?.subscription_status || ''
       );
 
-      if (!hasActiveSub && existingClients && existingClients.length > 0) {
+      if (!hasActiveSub) {
         return NextResponse.json(
           { error: 'Active subscription required. Please subscribe to a plan first.' },
+          { status: 403 }
+        );
+      }
+
+      // 4. Enforce bot count limit based on plan
+      const planTier = (profile?.plan_tier || 'starter') as PlanTier;
+      const maxBots = PLAN_LIMITS[planTier].maxBots;
+
+      const { count: currentBotCount } = await db
+        .from('clients')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if ((currentBotCount || 0) >= maxBots) {
+        return NextResponse.json(
+          { error: `Bot limit reached. Your ${planTier} plan allows ${maxBots} bot(s). Upgrade to create more.` },
           { status: 403 }
         );
       }

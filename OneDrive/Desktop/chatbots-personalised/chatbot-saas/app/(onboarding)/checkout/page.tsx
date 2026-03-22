@@ -11,10 +11,25 @@ export default async function OnboardingCheckoutPage() {
     redirect("/login");
   }
 
-  // Get the default client for this user (they just signed up, so they might not have one yet or they just got one created)
+  // Check user-level subscription first (on profiles table)
+  const { data: profile } = await db
+    .from("profiles")
+    .select("subscription_status, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  // If admin or already has active subscription, go to clients
+  if (
+    profile?.role === "admin" ||
+    ["active", "trialing"].includes(profile?.subscription_status || "")
+  ) {
+    redirect("/clients");
+  }
+
+  // Get the default client for this user (needed to pass to pricing section for checkout)
   const { data: clients } = await db
     .from("clients")
-    .select("id, subscription_status")
+    .select("id")
     .eq("user_id", user.id)
     .limit(1);
 
@@ -27,13 +42,8 @@ export default async function OnboardingCheckoutPage() {
       name: "My Workspace",
       slug: `workspace-${Date.now()}`,
     }).select("id").single();
-    
+
     clientId = newClient?.id;
-  } else {
-    // If they already have an active subscription, let them in
-    if (["active", "trialing"].includes(clients[0].subscription_status)) {
-       redirect("/clients");
-    }
   }
 
   return (

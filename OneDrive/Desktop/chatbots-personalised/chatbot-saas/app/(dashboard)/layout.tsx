@@ -18,19 +18,23 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  // Fetch user role from profiles
+  // Fetch user role and subscription from profiles
   let isAdmin = false;
+  let hasActiveSubscription = false;
   const { data: profile } = await db
     .from("profiles")
-    .select("role")
+    .select("role, subscription_status, plan_tier")
     .eq("id", user.id)
     .maybeSingle();
   isAdmin = profile?.role === "admin";
+  // User-level subscription check (survives client deletion)
+  hasActiveSubscription = ["active", "trialing", "past_due"].includes(
+    profile?.subscription_status || ""
+  );
 
   // Check client usage for warning banner
   let warningMessage = null;
   let clientWithHighUsage = null;
-  let hasActiveSubscription = false;
 
   const { data: clients } = await db
     .from("clients")
@@ -39,12 +43,8 @@ export default async function DashboardLayout({
     .eq("is_active", true);
 
   if (clients && clients.length > 0) {
-    hasActiveSubscription = clients.some((c: any) =>
-      ["active", "trialing", "past_due"].includes(c.subscription_status)
-    );
-
     for (const client of clients) {
-      const tier = (client.plan_tier || "starter") as PlanTier;
+      const tier = (client.plan_tier || profile?.plan_tier || "starter") as PlanTier;
       const limit = PLAN_LIMITS[tier].maxMessages;
       const used = client.messages_this_month || 0;
       if (used >= limit * 0.8) {
