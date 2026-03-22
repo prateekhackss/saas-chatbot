@@ -110,6 +110,7 @@ export async function PATCH(
         name,
         slug,
         config: config as any,
+        allowed_origins: config.allowedOrigins || [],
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

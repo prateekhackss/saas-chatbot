@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const { clientSlug, sessionId, history, message, messages } = body;
+    const { clientSlug, sessionId, history, message, messages, embedToken } = body;
     const normalizedSdkMessages = normalizeMessages(messages);
     const normalizedHistory = normalizeMessages(history);
 
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
     // 1. Validate Client & Get Config (Runs concurrently)
     const { data: rawClient, error: clientError } = await supabase
       .from('clients')
-      .select('id, config, is_active, plan_tier, messages_this_month')
+      .select('id, config, is_active, plan_tier, messages_this_month, embed_token, allowed_origins')
       .eq('slug', clientSlug)
       .single();
 
@@ -132,6 +132,32 @@ export async function POST(req: NextRequest) {
 
     if (clientError || !client || !client.is_active) {
       return NextResponse.json({ error: 'Client not found or inactive' }, { status: 404 });
+    }
+
+    // SECURITY: Validate embed token — prevents unauthorized usage of another client's chatbot
+    if (!embedToken || embedToken !== client.embed_token) {
+      return NextResponse.json({ error: 'Invalid or missing embed token' }, { status: 403 });
+    }
+
+    // SECURITY: Validate origin — ensures the widget is only used on authorized domains
+    const requestOrigin = req.headers.get('origin') || req.headers.get('referer') || '';
+    const allowedOrigins: string[] = client.allowed_origins || [];
+
+    if (allowedOrigins.length > 0) {
+      const originHostname = extractHostname(requestOrigin);
+      const isAllowedOrigin = allowedOrigins.some(allowed => {
+        const allowedHostname = extractHostname(allowed);
+        // Support wildcard subdomains: *.example.com matches sub.example.com
+        if (allowedHostname.startsWith('*.')) {
+          const baseDomain = allowedHostname.slice(2);
+          return originHostname === baseDomain || originHostname.endsWith('.' + baseDomain);
+        }
+        return originHostname === allowedHostname;
+      });
+
+      if (!isAllowedOrigin) {
+        return NextResponse.json({ error: 'Origin not authorized' }, { status: 403 });
+      }
     }
 
     const clientId = client.id;
@@ -302,4 +328,18 @@ async function fireHandoffWebhook(url: string, payload: any) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+}
+
+/**
+ * Extract hostname from a URL string (handles full URLs, origins, and bare domains).
+ * Returns lowercase hostname without port.
+ */
+function extractHostname(urlOrOrigin: string): string {
+  try {
+    // Handle bare domains like "example.com"
+    const normalized = urlOrOrigin.includes('://') ? urlOrOrigin : `https://${urlOrOrigin}`;
+    return new URL(normalized).hostname.toLowerCase();
+  } catch {
+    return urlOrOrigin.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
+  }
 }

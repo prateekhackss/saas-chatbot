@@ -29,6 +29,8 @@ type ClientRecord = {
   slug: string;
   is_active: boolean;
   plan_tier?: string;
+  embed_token?: string;
+  allowed_origins?: string[];
   config: ClientConfig;
 };
 
@@ -84,6 +86,8 @@ export function ClientDetailPanel({
   const [removeBranding, setRemoveBranding] = useState(client.config.removeBranding || false);
   const [leadCaptureEnabled, setLeadCaptureEnabled] = useState(client.config.leadCaptureEnabled || false);
   const [handoffWebhookUrl, setHandoffWebhookUrl] = useState(client.config.handoffWebhookUrl || "");
+  const [allowedOrigins, setAllowedOrigins] = useState<string[]>(client.allowed_origins || []);
+  const [newOrigin, setNewOrigin] = useState("");
 
   const planTier = (clientState.plan_tier || "starter") as PlanTier;
   const allowedFeatures = PLAN_LIMITS[planTier].features;
@@ -110,6 +114,8 @@ export function ClientDetailPanel({
     setRemoveBranding(clientState.config.removeBranding || false);
     setLeadCaptureEnabled(clientState.config.leadCaptureEnabled || false);
     setHandoffWebhookUrl(clientState.config.handoffWebhookUrl || "");
+    setAllowedOrigins(clientState.allowed_origins || []);
+    setNewOrigin("");
   }
 
   function updateQuestion(index: number, value: string) {
@@ -252,6 +258,7 @@ export function ClientDetailPanel({
             removeBranding,
             leadCaptureEnabled,
             handoffWebhookUrl: handoffWebhookUrl.trim(),
+            allowedOrigins: allowedOrigins.filter(Boolean),
           },
         }),
       });
@@ -293,6 +300,8 @@ export function ClientDetailPanel({
       setRemoveBranding(nextClient.config.removeBranding || false);
       setLeadCaptureEnabled(nextClient.config.leadCaptureEnabled || false);
       setHandoffWebhookUrl(nextClient.config.handoffWebhookUrl || "");
+      setAllowedOrigins(nextClient.allowed_origins || []);
+      setNewOrigin("");
       setSuccessMessage("Client configuration updated.");
       pushToast({
         title: "Client updated",
@@ -775,6 +784,106 @@ export function ClientDetailPanel({
                      )}
                    </Field>
                  </div>
+               </div>
+            </div>
+
+            <div className="pt-8 border-t border-stone-200">
+               <h3 className="text-lg font-semibold tracking-tight text-stone-950">
+                  Security
+               </h3>
+               <p className="mt-1 text-sm text-stone-500 mb-6">
+                 Control which domains can embed your chatbot widget.
+               </p>
+
+               <div className="space-y-6">
+                 {clientState.embed_token && (
+                   <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
+                     <div className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-600 mb-2">
+                       Embed Security Token
+                     </div>
+                     <p className="text-xs text-amber-700 mb-3">
+                       This token is automatically included when your widget loads. It prevents unauthorized use of your chatbot slug.
+                     </p>
+                     <code className="block text-xs font-mono text-amber-800 bg-amber-100 px-3 py-2 rounded-xl break-all">
+                       {clientState.embed_token}
+                     </code>
+                   </div>
+                 )}
+
+                 <Field label="Allowed Domains" hint="Restrict which websites can embed your chatbot. Leave empty to allow all domains.">
+                   {isEditing ? (
+                     <div className="space-y-3">
+                       {allowedOrigins.map((origin, index) => (
+                         <div key={index} className="flex items-center gap-3">
+                           <input
+                             value={origin}
+                             onChange={(e) => {
+                               const updated = [...allowedOrigins];
+                               updated[index] = e.target.value;
+                               setAllowedOrigins(updated);
+                             }}
+                             placeholder="example.com or *.example.com"
+                             className={inputClassName}
+                           />
+                           <button
+                             type="button"
+                             onClick={() => setAllowedOrigins(allowedOrigins.filter((_, i) => i !== index))}
+                             className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
+                             aria-label={`Remove domain ${index + 1}`}
+                           >
+                             <X className="h-4 w-4" />
+                           </button>
+                         </div>
+                       ))}
+                       <div className="flex items-center gap-3">
+                         <input
+                           value={newOrigin}
+                           onChange={(e) => setNewOrigin(e.target.value)}
+                           onKeyDown={(e) => {
+                             if (e.key === "Enter" && newOrigin.trim()) {
+                               e.preventDefault();
+                               setAllowedOrigins([...allowedOrigins, newOrigin.trim()]);
+                               setNewOrigin("");
+                             }
+                           }}
+                           placeholder="Add domain (e.g. mysite.com)"
+                           className={inputClassName}
+                         />
+                         <button
+                           type="button"
+                           onClick={() => {
+                             if (newOrigin.trim()) {
+                               setAllowedOrigins([...allowedOrigins, newOrigin.trim()]);
+                               setNewOrigin("");
+                             }
+                           }}
+                           className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:bg-white hover:text-stone-950"
+                         >
+                           Add
+                         </button>
+                       </div>
+                       <p className="text-xs text-stone-400">
+                         Use *.example.com to allow all subdomains. Press Enter or click Add to add a domain.
+                       </p>
+                     </div>
+                   ) : allowedOrigins.length > 0 ? (
+                     <div className="flex flex-wrap gap-2">
+                       {allowedOrigins.map((origin) => (
+                         <span
+                           key={origin}
+                           className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-mono text-emerald-700"
+                         >
+                           {origin}
+                         </span>
+                       ))}
+                     </div>
+                   ) : (
+                     <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-200">
+                       <AlertCircle className="w-4 h-4 shrink-0" />
+                       No domain restrictions — widget can be embedded on any website. Click Edit to add allowed domains.
+                     </div>
+                   )}
+                 </Field>
                </div>
             </div>
 

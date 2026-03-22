@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // Opt out of caching; we need real-time config in case the client updates their branding
 export const dynamic = 'force-dynamic';
 
-// WARNING: This in-memory rate limiter does NOT persist across serverless invocations.
-// It only works within a single warm instance. For production, replace with:
-// import { Ratelimit } from '@upstash/ratelimit'
-// import { Redis } from '@upstash/redis'
-// const ratelimit = new Ratelimit({ redis: Redis.fromEnv(), limiter: Ratelimit.slidingWindow(20, '60 s') })
-// Lightweight In-Memory Rate Limiter (Note: In a multi-region Edge deployment, using Redis/Upstash is preferred)
+// Lightweight In-Memory Rate Limiter
+// WARNING: does NOT persist across serverless invocations — for production at scale, use Upstash Redis
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 const RATE_LIMIT = 50; // max config fetches per minute
 const WINDOW_MS = 60 * 1000; // 1 minute window
@@ -23,7 +20,7 @@ export async function GET(
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
     const now = Date.now();
     const windowStart = now - WINDOW_MS;
-    
+
     if (Math.random() < 0.05) {
        for (const [key, value] of Array.from(rateLimitMap.entries())) {
           if (value.lastReset < windowStart) rateLimitMap.delete(key);
@@ -31,14 +28,14 @@ export async function GET(
     }
 
     const rateData = rateLimitMap.get(ip) || { count: 0, lastReset: now };
-    
+
     if (rateData.lastReset < windowStart) {
        rateData.count = 1;
        rateData.lastReset = now;
     } else {
        rateData.count++;
     }
-    
+
     rateLimitMap.set(ip, rateData);
 
     if (rateData.count > RATE_LIMIT) {
@@ -46,61 +43,94 @@ export async function GET(
     }
 
     const { slug } = await params;
-    
+
     if (!slug || slug.length > 100 || !/^[a-z0-9-]+$/.test(slug)) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    // Use the secure VIEW instead of querying clients table directly
-    // This prevents leaking sensitive config fields even if RLS is bypassed
-    const supabase = await createClient();
-    const db = supabase as any;
+    // Use admin client to fetch embed_token (needed for widget auth)
+    // The embed_token is passed to the widget so it can authenticate chat requests
+    const adminDb = createAdminClient() as any;
 
-    const { data: client, error } = await db
-      .from('public_client_configs')
-      .select('safe_config, is_active')
+    const { data: client, error } = await adminDb
+      .from('clients')
+      .select('config, is_active, embed_token, allowed_origins')
       .eq('slug', slug)
       .single();
 
     if (error || !client || !client.is_active) {
-      // Fallback: try clients table with manual field stripping
-      // (in case view doesn't exist yet / migration not run)
-      const { data: fallbackClient, error: fbError } = await db
-        .from('clients')
-        .select('config, is_active')
-        .eq('slug', slug)
-        .single();
-
-      if (fbError || !fallbackClient || !fallbackClient.is_active) {
-        return NextResponse.json(
-          { error: 'Client not found or inactive' },
-          { status: 404 }
-        );
-      }
-
-      const safeConfig = {
-        brandName: fallbackClient.config.brandName,
-        welcomeMessage: fallbackClient.config.welcomeMessage,
-        primaryColor: fallbackClient.config.primaryColor,
-        textColor: fallbackClient.config.textColor,
-        position: fallbackClient.config.position,
-        tone: fallbackClient.config.tone,
-        fallbackMessage: fallbackClient.config.fallbackMessage,
-        logoUrl: fallbackClient.config.logoUrl,
-        suggestedQuestions: fallbackClient.config.suggestedQuestions,
-        removeBranding: fallbackClient.config.removeBranding || false,
-        leadCaptureEnabled: fallbackClient.config.leadCaptureEnabled || false,
-        leadCaptureMessage: fallbackClient.config.leadCaptureMessage || '',
-        offlineMessage: fallbackClient.config.offlineMessage || '',
-        businessHours: fallbackClient.config.businessHours || null,
-      };
-      return NextResponse.json({ config: safeConfig }, { status: 200 });
+      return NextResponse.json(
+        { error: 'Client not found or inactive' },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ config: client.safe_config }, { status: 200 });
-    
+    // SECURITY: Validate origin if allowed_origins is configured
+    const allowedOrigins: string[] = client.allowed_origins || [];
+    if (allowedOrigins.length > 0) {
+      const requestOrigin = req.headers.get('origin') || req.headers.get('referer') || '';
+      const originHostname = extractHostname(requestOrigin);
+      const appHostname = extractHostname(process.env.NEXT_PUBLIC_APP_URL || 'localhost');
+
+      // Always allow requests from the app itself (for preview/dashboard)
+      const isAppOrigin = originHostname === appHostname || originHostname === 'localhost';
+
+      if (!isAppOrigin) {
+        const isAllowedOrigin = allowedOrigins.some(allowed => {
+          const allowedHostname = extractHostname(allowed);
+          if (allowedHostname.startsWith('*.')) {
+            const baseDomain = allowedHostname.slice(2);
+            return originHostname === baseDomain || originHostname.endsWith('.' + baseDomain);
+          }
+          return originHostname === allowedHostname;
+        });
+
+        if (!isAllowedOrigin) {
+          return NextResponse.json({ error: 'Origin not authorized' }, { status: 403 });
+        }
+      }
+    }
+
+    // Build safe config — strip sensitive fields
+    const safeConfig = {
+      brandName: client.config.brandName,
+      welcomeMessage: client.config.welcomeMessage,
+      primaryColor: client.config.primaryColor,
+      textColor: client.config.textColor,
+      position: client.config.position,
+      tone: client.config.tone,
+      fallbackMessage: client.config.fallbackMessage,
+      logoUrl: client.config.logoUrl,
+      suggestedQuestions: client.config.suggestedQuestions,
+      removeBranding: client.config.removeBranding || false,
+      leadCaptureEnabled: client.config.leadCaptureEnabled || false,
+      leadCaptureMessage: client.config.leadCaptureMessage || '',
+      offlineMessage: client.config.offlineMessage || '',
+      businessHours: client.config.businessHours || null,
+    };
+
+    // Return config + embed_token (token is needed by the widget to authenticate chat requests)
+    // The token is NOT a secret that needs hiding — it's like an API key scoped to this client
+    // It prevents slug-guessing attacks: knowing a slug alone is not enough to use the chatbot
+    return NextResponse.json({
+      config: safeConfig,
+      embedToken: client.embed_token,
+    }, { status: 200 });
+
   } catch (error) {
     console.error('Embed API Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+/**
+ * Extract hostname from a URL string (handles full URLs, origins, and bare domains).
+ */
+function extractHostname(urlOrOrigin: string): string {
+  try {
+    const normalized = urlOrOrigin.includes('://') ? urlOrOrigin : `https://${urlOrOrigin}`;
+    return new URL(normalized).hostname.toLowerCase();
+  } catch {
+    return urlOrOrigin.toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
   }
 }

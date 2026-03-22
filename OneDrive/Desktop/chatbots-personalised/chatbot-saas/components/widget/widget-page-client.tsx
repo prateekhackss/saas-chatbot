@@ -10,6 +10,7 @@ export function WidgetPageClient() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const [config, setConfig] = useState<ClientConfig | null>(null);
+  const [embedToken, setEmbedToken] = useState<string | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ export function WidgetPageClient() {
 
         const data = await response.json();
         setConfig(data.config);
+        setEmbedToken(data.embedToken || null);
       } catch (fetchError) {
         console.error(fetchError);
         setError("This chatbot is currently unavailable.");
@@ -43,7 +45,7 @@ export function WidgetPageClient() {
     );
   }
 
-  if (error || !config) {
+  if (error || !config || !embedToken) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-white p-4 text-center font-sans text-sm font-medium text-gray-500">
         {error || "Widget configuration missing."}
@@ -51,12 +53,13 @@ export function WidgetPageClient() {
     );
   }
 
-  return <ChatInterface slug={slug} config={config} />;
+  return <ChatInterface slug={slug} config={config} embedToken={embedToken} />;
 }
 
 type ChatInterfaceProps = {
   slug: string;
   config: ClientConfig;
+  embedToken: string;
 };
 
 function isWithinBusinessHours(config: ClientConfig): boolean {
@@ -84,7 +87,7 @@ function isWithinBusinessHours(config: ClientConfig): boolean {
   return currentTime >= daySchedule.start && currentTime <= daySchedule.end;
 }
 
-function ChatInterface({ slug, config }: ChatInterfaceProps) {
+function ChatInterface({ slug, config, embedToken }: ChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [leadCaptured, setLeadCaptured] = useState(false);
@@ -144,6 +147,7 @@ function ChatInterface({ slug, config }: ChatInterfaceProps) {
       body: {
         clientSlug: slug,
         sessionId,
+        embedToken,
       },
     });
 
