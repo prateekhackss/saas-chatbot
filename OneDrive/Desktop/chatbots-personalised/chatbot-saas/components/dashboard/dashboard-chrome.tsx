@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Menu,
   PlusCircle,
+  Settings,
   Users,
   X,
 } from "lucide-react";
@@ -40,6 +41,12 @@ const navigationItems = [
     icon: PlusCircle,
     description: "Launch a new chatbot workspace",
   },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: Settings,
+    description: "Account & security settings",
+  },
 ];
 
 export function DashboardChrome({
@@ -69,6 +76,9 @@ export function DashboardChrome({
     if (pathname.startsWith("/clients/")) {
       return "Client Details";
     }
+    if (pathname === "/settings") {
+      return "Settings";
+    }
     return "Dashboard";
   }, [pathname]);
 
@@ -76,6 +86,11 @@ export function DashboardChrome({
     const items = [{ label: "Dashboard", href: "/dashboard" }];
 
     if (pathname === "/dashboard") {
+      return items;
+    }
+
+    if (pathname === "/settings") {
+      items.push({ label: "Settings", href: "/settings" });
       return items;
     }
 
@@ -206,7 +221,7 @@ export function DashboardChrome({
       ) : null}
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = getIsActive(pathname, item.href);

@@ -36,8 +36,8 @@ export function AnimatedAuth({
   const isLogin = mode === "login";
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(239,68,68,0.08),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(10,10,10,0.12),_transparent_40%),linear-gradient(180deg,_#FAFAF9_0%,_#F5F5F4_100%)] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto relative flex min-h-[calc(100vh-5rem)] w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/60 bg-white/75 shadow-2xl shadow-neutral-900/10 backdrop-blur">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(239,68,68,0.08),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(10,10,10,0.12),_transparent_40%),linear-gradient(180deg,_#FAFAF9_0%,_#F5F5F4_100%)] px-4 py-6 sm:py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto relative flex min-h-[calc(100vh-3rem)] sm:min-h-[calc(100vh-5rem)] w-full max-w-6xl overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] border border-white/60 bg-white/75 shadow-2xl shadow-neutral-900/10 backdrop-blur">
         
         {/* Dark Info Panel (Red portion that slides to right) */}
         <section 
@@ -87,14 +87,14 @@ export function AnimatedAuth({
         </section>
 
         {/* Form Panel (White portion that slides left) */}
-        <section 
-          className={`absolute inset-y-0 z-10 flex w-full lg:w-[54%] items-center justify-center px-6 py-10 sm:px-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        <section
+          className={`absolute inset-y-0 z-10 flex w-full lg:w-[54%] items-center justify-center px-4 py-6 sm:px-10 sm:py-10 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] overflow-y-auto ${
             isLogin ? "left-0 lg:left-[46%] lg:translate-x-0" : "left-0 lg:left-[46%] lg:-translate-x-[85.18%]"
           }`}
           style={{ willChange: "transform" }}
         >
-          <div className="w-full max-w-md relative min-h-[500px]">
-            <div className="lg:hidden bg-[#0A0A0A] p-4 rounded-3xl mb-8 flex items-center justify-center">
+          <div className="w-full max-w-md relative min-h-[480px] sm:min-h-[500px]">
+            <div className="lg:hidden bg-[#0A0A0A] p-4 rounded-2xl sm:rounded-3xl mb-6 sm:mb-8 flex items-center justify-center">
               <Logo size="md" showTagline={true} />
             </div>
 

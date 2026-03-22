@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, Bot, MessageSquareText, Users, UserPlus, MailPlus, Zap } from "lucide-react";
+import { Activity, Bot, MessageSquareText, Users, UserPlus, MailPlus, Zap, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export async function DashboardOverview() {
@@ -26,6 +26,14 @@ export async function DashboardOverview() {
     .select("id");
   const totalLeads = leads?.length || 0;
 
+  // Fetch deleted accounts audit trail
+  const { data: deletedAccounts } = await db
+    .from("deleted_accounts")
+    .select("id, email, full_name, plan_tier, total_clients, total_messages, deleted_at")
+    .order("deleted_at", { ascending: false })
+    .limit(10);
+  const totalDeleted = deletedAccounts?.length || 0;
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-col gap-2">
@@ -37,7 +45,7 @@ export async function DashboardOverview() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-6 animate-fade-in-up">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in-up">
         <StatCard
           title="Total Clients"
           value={totalClients.toString()}
@@ -73,6 +81,12 @@ export async function DashboardOverview() {
           value={totalUsageTokens.toLocaleString()}
           subtitle="Calculated from transcripts"
           icon={<Zap className="h-4 w-4 text-rose-500" />}
+        />
+        <StatCard
+          title="Deleted Accounts"
+          value={totalDeleted.toString()}
+          subtitle="Audit trail preserved"
+          icon={<UserX className="h-4 w-4 text-stone-400" />}
         />
       </div>
 
@@ -111,6 +125,61 @@ export async function DashboardOverview() {
           </Link>
         </div>
       </div>
+
+      {/* Deleted Accounts Audit Log — only shows if records exist */}
+      {deletedAccounts && deletedAccounts.length > 0 && (
+        <div className="mt-8 animate-fade-in-up animation-delay-150">
+          <div className="flex items-center gap-2 mb-4">
+            <UserX className="h-5 w-5 text-stone-400" />
+            <h2 className="text-xl font-semibold text-stone-900">
+              Deleted Accounts
+            </h2>
+            <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-500">
+              Audit Log
+            </span>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-100 bg-stone-50">
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Email</th>
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Name</th>
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Plan</th>
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Clients</th>
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Messages</th>
+                    <th className="px-4 py-3 text-left font-medium text-stone-500">Deleted At</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {deletedAccounts.map((account: any) => (
+                    <tr key={account.id} className="hover:bg-stone-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-stone-900">{account.email}</td>
+                      <td className="px-4 py-3 text-stone-600">{account.full_name || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-600 capitalize">
+                          {account.plan_tier || "—"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-stone-600">{account.total_clients}</td>
+                      <td className="px-4 py-3 text-stone-600">{account.total_messages?.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-stone-500 text-xs">
+                        {new Date(account.deleted_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

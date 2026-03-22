@@ -2,12 +2,17 @@ import { DashboardChrome } from "@/components/dashboard/dashboard-chrome";
 import { createClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, PlanTier } from "@/lib/constants/pricing";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+  const isSettingsPage = pathname.startsWith("/settings");
+
   const supabase = await createClient();
   const db = supabase as any;
   const {
@@ -41,7 +46,7 @@ export default async function DashboardLayout({
          ["active", "trialing", "past_due"].includes(c.subscription_status)
       );
 
-      if (!hasActiveClient) {
+      if (!hasActiveClient && !isSettingsPage) {
         redirect("/checkout");
       }
 
@@ -55,7 +60,7 @@ export default async function DashboardLayout({
           break; // Show warning for the first client near limit
         }
       }
-    } else {
+    } else if (!isSettingsPage) {
       // New users with no clients must also go through onboarding
       redirect("/checkout");
     }

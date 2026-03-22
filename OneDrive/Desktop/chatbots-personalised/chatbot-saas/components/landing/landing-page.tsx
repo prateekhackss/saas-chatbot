@@ -119,6 +119,9 @@ export async function MarketingLandingPage() {
             <Link href="#pricing" className="transition hover:text-stone-950">
               Pricing
             </Link>
+            <Link href="/privacy" className="transition hover:text-stone-950">
+              Privacy
+            </Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -362,14 +365,29 @@ export async function MarketingLandingPage() {
       </main>
 
       <footer className="border-t border-stone-200 bg-white px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <Logo tone="light" size="md" />
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <Logo tone="light" size="md" />
+            </div>
+            <div className="flex flex-wrap items-center gap-6 text-sm text-stone-500">
+              <Link href="/privacy" className="transition hover:text-stone-900">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="transition hover:text-stone-900">
+                Terms of Service
+              </Link>
+              <Link href="#pricing" className="transition hover:text-stone-900">
+                Pricing
+              </Link>
+            </div>
           </div>
-          <p className="text-sm text-stone-500">
-            Copyright {new Date().getFullYear()} NexusChat. AI chatbots trained on
-            your business content and ready to deploy.
-          </p>
+          <div className="mt-6 border-t border-stone-100 pt-6">
+            <p className="text-sm text-stone-400">
+              &copy; {new Date().getFullYear()} NexusChat. All rights reserved. AI chatbots trained on
+              your business content and ready to deploy.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
