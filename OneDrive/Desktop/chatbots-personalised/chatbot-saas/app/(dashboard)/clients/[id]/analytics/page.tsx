@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   Clock3,
+  Lock,
   MessageSquareText,
   ShieldCheck,
   UserPlus,
@@ -12,6 +13,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import { ConversationViewer } from "./conversation-viewer";
+import { PLAN_LIMITS, type PlanTier } from "@/lib/constants/pricing";
 
 type ConversationRecord = {
   id: string;
@@ -41,10 +43,12 @@ export default async function AnalyticsPage({
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await db
     .from("profiles")
-    .select("role")
+    .select("role, plan_tier")
     .eq("id", user?.id)
     .maybeSingle();
   const isAdmin = profile?.role === "admin";
+  const planTier: PlanTier = profile?.plan_tier || "starter";
+  const canViewConversations = isAdmin || PLAN_LIMITS[planTier].features.conversationHistory;
 
   const { data: client, error: clientError } = await db
     .from("clients")
@@ -191,11 +195,32 @@ export default async function AnalyticsPage({
             Recent Chat History
           </h2>
           <p className="mt-2 text-sm text-stone-500">
-            Click on any conversation to view the full chat transcript.
+            {canViewConversations
+              ? "Click on any conversation to view the full chat transcript."
+              : "Upgrade to Pro or Business to unlock full conversation history."}
           </p>
         </div>
 
-        {enrichedConvos.length === 0 ? (
+        {!canViewConversations ? (
+          <div className="px-6 py-16 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <Lock className="h-7 w-7" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold tracking-tight text-stone-950">
+              Conversation History is a Pro Feature
+            </h3>
+            <p className="mx-auto mt-2 max-w-md text-sm text-stone-500">
+              Your Starter plan includes summary analytics above. Upgrade to <strong>Pro</strong> or <strong>Business</strong> to access full chat transcripts, visitor details, and conversation search.
+            </p>
+            <Link
+              href={`/clients/${client.id}/billing`}
+              className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 text-sm font-semibold text-white transition hover:bg-stone-800"
+            >
+              <Zap className="h-4 w-4" />
+              Upgrade Plan
+            </Link>
+          </div>
+        ) : enrichedConvos.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 text-stone-600">
               <MessageSquareText className="h-7 w-7" />

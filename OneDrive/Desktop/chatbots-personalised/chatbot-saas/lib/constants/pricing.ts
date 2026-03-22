@@ -13,6 +13,7 @@ export const PLAN_LIMITS: Record<
       humanHandoff: boolean;
       prioritySupport: boolean;
       leadCapture: boolean;
+      conversationHistory: boolean;
     };
   }
 > = {
@@ -27,6 +28,7 @@ export const PLAN_LIMITS: Record<
       humanHandoff: false,
       prioritySupport: false,
       leadCapture: false,
+      conversationHistory: false,
     },
   },
   pro: {
@@ -40,6 +42,7 @@ export const PLAN_LIMITS: Record<
       humanHandoff: true,
       prioritySupport: false,
       leadCapture: true,
+      conversationHistory: true,
     },
   },
   business: {
@@ -53,6 +56,7 @@ export const PLAN_LIMITS: Record<
       humanHandoff: true,
       prioritySupport: true,
       leadCapture: true,
+      conversationHistory: true,
     },
   },
 };

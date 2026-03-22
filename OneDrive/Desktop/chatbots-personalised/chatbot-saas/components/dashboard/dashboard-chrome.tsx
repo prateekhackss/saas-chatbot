@@ -122,7 +122,7 @@ export function DashboardChrome({
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-neutral-900 bg-[#0A0A0A] text-neutral-100 lg:flex">
+        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-neutral-900 bg-[#0A0A0A] text-neutral-100 lg:flex sticky top-0 h-screen overflow-y-auto">
           <SidebarContent
             pathname={pathname}
             userEmail={userEmail}
@@ -165,19 +165,19 @@ export function DashboardChrome({
               </div>
 
               <div className="hidden items-center gap-3 sm:flex">
-                <NotificationBell />
-              </div>
-              <div className="hidden items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 shadow-sm sm:flex">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold text-stone-900">
-                  {getInitials(userEmail)}
-                </span>
-                <span className="max-w-[220px] truncate">{userEmail}</span>
-                {isAdmin && (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700">
-                    <Crown className="h-2.5 w-2.5" />
-                    Admin
+                <div className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 shadow-sm">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold text-stone-900">
+                    {getInitials(userEmail)}
                   </span>
-                )}
+                  <span className="max-w-[220px] truncate">{userEmail}</span>
+                  {isAdmin && (
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-700">
+                      <Crown className="h-2.5 w-2.5" />
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <NotificationBell />
               </div>
             </div>
           </header>
