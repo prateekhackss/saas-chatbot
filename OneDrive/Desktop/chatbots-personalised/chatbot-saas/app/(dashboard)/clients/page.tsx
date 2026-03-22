@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { DeleteClientButton } from "@/components/dashboard/delete-client-button";
 
 type ClientRecord = {
   id: string;
@@ -133,10 +134,9 @@ export default async function ClientsPage() {
           const conversationCount = conversationCounts[client.id] || 0;
 
           return (
-            <Link
+            <div
               key={client.id}
-              href={`/clients/${client.id}`}
-              className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm transition hover:-transtone-y-0.5 hover:border-stone-300 hover:shadow-md"
+              className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -164,22 +164,26 @@ export default async function ClientsPage() {
               </div>
 
               <div className="mt-5 flex items-center justify-between border-t border-stone-100 pt-4 text-sm">
-                <span className="text-stone-500">
-                  Created {formatDate(client.created_at)}
-                </span>
-                <span className="inline-flex items-center gap-2 font-semibold text-stone-900">
+                <DeleteClientButton
+                  clientId={client.id}
+                  clientName={client.name}
+                />
+                <Link
+                  href={`/clients/${client.id}`}
+                  className="inline-flex items-center gap-2 font-semibold text-stone-900"
+                >
                   Manage
                   <ArrowRight className="h-4 w-4" />
-                </span>
+                </Link>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
 
       <div className="hidden overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white shadow-sm md:block">
         <div className="border-b border-stone-200 bg-stone-50/80 px-6 py-4">
-          <div className="grid grid-cols-[minmax(0,2.2fr)_1fr_110px_140px_160px] gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
+          <div className="grid grid-cols-[minmax(0,2.2fr)_1fr_110px_140px_220px] gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
             <span>Client</span>
             <span>Activity</span>
             <span>Status</span>
@@ -195,7 +199,7 @@ export default async function ClientsPage() {
             return (
               <div
                 key={client.id}
-                className="grid grid-cols-[minmax(0,2.2fr)_1fr_110px_140px_160px] items-center gap-4 px-6 py-5 transition hover:bg-stone-50/80"
+                className="grid grid-cols-[minmax(0,2.2fr)_1fr_110px_140px_220px] items-center gap-4 px-6 py-5 transition hover:bg-stone-50/80"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-3">
@@ -224,7 +228,11 @@ export default async function ClientsPage() {
                   {formatDate(client.created_at)}
                 </div>
 
-                <div className="text-right">
+                <div className="flex items-center justify-end gap-3">
+                  <DeleteClientButton
+                    clientId={client.id}
+                    clientName={client.name}
+                  />
                   <Link
                     href={`/clients/${client.id}`}
                     className="inline-flex items-center gap-2 text-sm font-semibold text-stone-900 transition hover:text-teal-700"
