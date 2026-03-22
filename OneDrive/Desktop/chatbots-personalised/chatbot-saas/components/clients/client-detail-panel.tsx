@@ -684,9 +684,9 @@ export function ClientDetailPanel({
                     </button>
                   </div>
                 </div>
-              ) : clientState.config.suggestedQuestions.length > 0 ? (
+              ) : (clientState.config.suggestedQuestions || []).length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {clientState.config.suggestedQuestions.map((question) => (
+                  {(clientState.config.suggestedQuestions || []).map((question) => (
                     <span
                       key={question}
                       className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-sm text-stone-600"
