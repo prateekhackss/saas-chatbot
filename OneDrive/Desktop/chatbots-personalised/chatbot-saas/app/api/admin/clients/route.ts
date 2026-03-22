@@ -44,7 +44,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Parse and validate payload
+    // 2. Check if user has an active subscription before allowing client creation
+    const { data: existingClients } = await db
+      .from('clients')
+      .select('id, subscription_status')
+      .eq('user_id', user.id);
+
+    const hasActiveSub = (existingClients || []).some((c: any) =>
+      ['active', 'trialing', 'past_due'].includes(c.subscription_status)
+    );
+
+    if (!hasActiveSub && existingClients && existingClients.length > 0) {
+      return NextResponse.json(
+        { error: 'Active subscription required. Please subscribe to a plan first.' },
+        { status: 403 }
+      );
+    }
+
+    // 3. Parse and validate payload
     const body = await req.json();
     const result = clientSchema.safeParse(body);
     

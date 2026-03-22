@@ -100,29 +100,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // Subscription gate: If user is authenticated and accessing protected routes,
-  // check if they have an active subscription. Skip for billing/checkout pages.
-  if (user && isProtectedPath(pathname) && !pathname.includes('/billing') && pathname !== '/checkout' && !pathname.startsWith('/settings') && !pathname.startsWith('/api/admin/account')) {
-    const db = supabase as any;
-    const { data: clients } = await db
-      .from('clients')
-      .select('id, subscription_status')
-      .eq('user_id', user.id)
-      .limit(1);
-
-    const client = clients?.[0];
-
-    // If user has a client but no active/trialing subscription, redirect to checkout
-    if (client && !['active', 'trialing'].includes(client.subscription_status)) {
-      // Allow access to billing page so they can subscribe
-      if (!pathname.includes('/billing')) {
-        const checkoutUrl = request.nextUrl.clone();
-        checkoutUrl.pathname = '/checkout';
-        checkoutUrl.search = '';
-        return NextResponse.redirect(checkoutUrl);
-      }
-    }
-  }
+  // Subscription check removed from middleware.
+  // Users can freely browse the dashboard after login.
+  // Paywall is enforced at the action level (creating bots, uploading docs, etc.)
 
   return response;
 }

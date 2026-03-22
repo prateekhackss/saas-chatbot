@@ -19,6 +19,7 @@ import { Logo } from "@/components/ui/logo";
 type DashboardChromeProps = {
   userEmail: string;
   isAdmin: boolean;
+  hasActiveSubscription?: boolean;
   children: React.ReactNode;
 };
 
@@ -52,6 +53,7 @@ const navigationItems = [
 export function DashboardChrome({
   userEmail,
   isAdmin,
+  hasActiveSubscription = false,
   children,
 }: DashboardChromeProps) {
   const pathname = usePathname();
