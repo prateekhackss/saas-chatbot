@@ -878,9 +878,23 @@ export function ClientDetailPanel({
                        ))}
                      </div>
                    ) : (
-                     <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-200">
-                       <AlertCircle className="w-4 h-4 shrink-0" />
-                       No domain restrictions — widget can be embedded on any website. Click Edit to add allowed domains.
+                     <div className="flex items-center justify-between gap-3 text-sm text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-200">
+                       <div className="flex items-center gap-2">
+                         <AlertCircle className="w-4 h-4 shrink-0" />
+                         <span>No domain restrictions — widget can be embedded on any website.</span>
+                       </div>
+                       <button
+                         type="button"
+                         onClick={() => {
+                           setIsEditing(true);
+                           setError(null);
+                           setSuccessMessage(null);
+                         }}
+                         className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-700"
+                       >
+                         <PencilLine className="h-3 w-3" />
+                         Add Domains
+                       </button>
                      </div>
                    )}
                  </Field>
