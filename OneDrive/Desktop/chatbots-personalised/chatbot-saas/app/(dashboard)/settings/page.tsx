@@ -256,7 +256,7 @@ export default async function SettingsPage() {
         title="Notifications"
         description="Choose what updates you want to receive"
       >
-        <NotificationSettings initial={notificationPrefs} />
+        <NotificationSettings initial={notificationPrefs} planTier={userPlanTier} />
       </SettingsSection>
 
       {/* ─── SECURITY ─── */}
