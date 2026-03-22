@@ -104,8 +104,6 @@ export default function ConversationList({
                     <span>{format(new Date(conv.created_at), "MMM d, yyyy h:mm a")}</span>
                     <span>•</span>
                     <span>{conv.message_count} messages</span>
-                    <span>•</span>
-                    <span className="font-mono text-[10px] text-stone-400">ID: {conv.session_id.slice(0, 8)}...</span>
                   </div>
                 </div>
               </div>
