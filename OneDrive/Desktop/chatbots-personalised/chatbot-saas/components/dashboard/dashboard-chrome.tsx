@@ -59,6 +59,7 @@ export function DashboardChrome({
 }: DashboardChromeProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const pageTitle = useMemo(() => {
     if (pathname === "/dashboard") {
@@ -131,7 +132,7 @@ export function DashboardChrome({
           />
         </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-200 ${isNotificationsOpen ? "mr-[252px]" : ""}`}>
           <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur">
             <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-3">
@@ -177,7 +178,7 @@ export function DashboardChrome({
                     </span>
                   )}
                 </div>
-                <NotificationBell />
+                <NotificationBell isOpen={isNotificationsOpen} onToggle={setIsNotificationsOpen} />
               </div>
             </div>
           </header>

@@ -19,11 +19,18 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   usage_warning: <AlertTriangle className="h-4 w-4 text-amber-400" />,
 };
 
-export function NotificationBell() {
+export function NotificationBell({
+  isOpen,
+  onToggle,
+}: {
+  isOpen: boolean;
+  onToggle: (open: boolean) => void;
+}) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const setIsOpen = onToggle;
 
   const fetchNotifications = async () => {
     try {
