@@ -19,24 +19,36 @@ export async function DashboardOverview() {
 
   const isAdmin = profile?.role === "admin";
 
-  // Fetch user's own data (RLS will filter for non-admin)
+  // Fetch user's own clients (RLS filters by user_id for non-admin)
   const { data: clients } = await db.from("clients").select("id, is_active, name, messages_this_month, plan_tier");
   const totalClients = clients?.length || 0;
   const activeBots = clients?.filter((client: any) => client.is_active).length || 0;
 
-  const { data: conversations } = await db
-    .from("conversations")
-    .select("message_count, estimated_tokens");
+  // Get IDs of this user's clients to scope conversations and leads
+  const userClientIds: string[] = (clients || []).map((c: any) => c.id);
 
+  let conversations: any[] = [];
   let totalMessages = 0;
   let totalUsageTokens = 0;
-  if (conversations) {
+  let totalLeads = 0;
+
+  if (userClientIds.length > 0) {
+    const { data: convos } = await db
+      .from("conversations")
+      .select("message_count, estimated_tokens")
+      .in("client_id", userClientIds);
+
+    conversations = convos || [];
     totalMessages = conversations.reduce((acc: number, curr: any) => acc + (curr.message_count || 0), 0);
     totalUsageTokens = conversations.reduce((acc: number, curr: any) => acc + (curr.estimated_tokens || 0), 0);
-  }
 
-  const { data: leads } = await db.from("leads").select("id");
-  const totalLeads = leads?.length || 0;
+    const { data: leads } = await db
+      .from("leads")
+      .select("id")
+      .in("client_id", userClientIds);
+
+    totalLeads = leads?.length || 0;
+  }
 
   // Admin-only: deleted accounts audit trail
   let deletedAccounts: any[] = [];
