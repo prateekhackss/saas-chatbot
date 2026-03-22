@@ -38,6 +38,15 @@ async function updateUserSubscription(
       updated_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  // Sync all user's clients to match the user's plan tier
+  await supabaseAdmin
+    .from("clients")
+    .update({
+      plan_tier: planTier,
+      subscription_status: appStatus,
+    })
+    .eq("user_id", userId);
 }
 
 export async function POST(req: NextRequest) {

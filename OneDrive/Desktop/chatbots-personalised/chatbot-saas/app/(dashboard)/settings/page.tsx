@@ -41,12 +41,18 @@ export default async function SettingsPage() {
   const { data: profile } = await db
     .from("profiles")
     .select(
-      "full_name, company_name, role, timezone, notification_preferences"
+      "full_name, company_name, role, timezone, notification_preferences, subscription_status, plan_tier"
     )
     .eq("id", user.id)
     .maybeSingle();
 
   const isAdmin = profile?.role === "admin";
+
+  // User-level subscription check
+  const hasActiveSub = ["active", "trialing", "past_due"].includes(
+    profile?.subscription_status || ""
+  );
+  const userPlanTier = (profile?.plan_tier || "starter") as PlanTier;
 
   // Fetch user's clients for billing/usage section
   const { data: clients } = await db
@@ -57,9 +63,6 @@ export default async function SettingsPage() {
     .eq("user_id", user.id);
 
   const activeClients = (clients || []).filter((c: any) => c.is_active);
-  const hasActiveSub = (clients || []).some((c: any) =>
-    ["active", "trialing", "past_due"].includes(c.subscription_status)
-  );
 
   // Admin stats
   let adminStats = null;
@@ -158,8 +161,8 @@ export default async function SettingsPage() {
         ) : (
           <div className="space-y-3">
             {activeClients.map((client: any) => {
-              const tier = (client.plan_tier || "starter") as PlanTier;
-              const limits = PLAN_LIMITS[tier];
+              // Use user's plan tier for limits (not per-client tier)
+              const limits = PLAN_LIMITS[userPlanTier];
               const used = client.messages_this_month || 0;
               const pct = Math.min((used / limits.maxMessages) * 100, 100);
 
@@ -178,8 +181,8 @@ export default async function SettingsPage() {
                           {client.name}
                         </h3>
                         <p className="text-xs text-stone-400">
-                          <span className="capitalize">{tier}</span> Plan
-                          {client.subscription_status === "trialing" &&
+                          <span className="capitalize">{userPlanTier}</span> Plan
+                          {profile?.subscription_status === "trialing" &&
                             " — Trial"}
                         </p>
                       </div>
