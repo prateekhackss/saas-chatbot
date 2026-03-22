@@ -1,12 +1,26 @@
 import Link from "next/link";
-import { Activity, Bot, MessageSquareText, Users, UserPlus, MailPlus, Zap, UserX } from "lucide-react";
+import { Activity, Bot, MessageSquareText, Users, MailPlus, Zap, UserX, Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 export async function DashboardOverview() {
   const supabase = await createClient();
   const db = supabase as any;
 
-  const { data: clients } = await db.from("clients").select("id, is_active");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Check if admin
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role, plan_tier, subscription_status")
+    .eq("id", user?.id)
+    .maybeSingle();
+
+  const isAdmin = profile?.role === "admin";
+
+  // Fetch user's own data (RLS will filter for non-admin)
+  const { data: clients } = await db.from("clients").select("id, is_active, name, messages_this_month, plan_tier");
   const totalClients = clients?.length || 0;
   const activeBots = clients?.filter((client: any) => client.is_active).length || 0;
 
@@ -21,75 +35,121 @@ export async function DashboardOverview() {
     totalUsageTokens = conversations.reduce((acc: number, curr: any) => acc + (curr.estimated_tokens || 0), 0);
   }
 
-  const { data: leads } = await db
-    .from("leads")
-    .select("id");
+  const { data: leads } = await db.from("leads").select("id");
   const totalLeads = leads?.length || 0;
 
-  // Fetch deleted accounts audit trail
-  const { data: deletedAccounts } = await db
-    .from("deleted_accounts")
-    .select("id, email, full_name, plan_tier, total_clients, total_messages, deleted_at")
-    .order("deleted_at", { ascending: false })
-    .limit(10);
-  const totalDeleted = deletedAccounts?.length || 0;
+  // Admin-only: deleted accounts audit trail
+  let deletedAccounts: any[] = [];
+  let totalDeleted = 0;
+  if (isAdmin) {
+    const { data } = await db
+      .from("deleted_accounts")
+      .select("id, email, full_name, plan_tier, total_clients, total_messages, deleted_at")
+      .order("deleted_at", { ascending: false })
+      .limit(10);
+    deletedAccounts = data || [];
+    totalDeleted = deletedAccounts.length;
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight text-stone-900">
-          Platform Overview
+          {isAdmin ? "Platform Overview" : "Dashboard"}
         </h1>
         <p className="text-stone-500">
-          Monitor your entire SaaS chatbot network at a glance.
+          {isAdmin
+            ? "Monitor your entire SaaS chatbot network at a glance."
+            : "Your chatbot performance and usage at a glance."}
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in-up">
+      {/* ─── Stats Grid ─── */}
+      <div className={`grid gap-6 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-3 xl:grid-cols-4" : "lg:grid-cols-3"} animate-fade-in-up`}>
         <StatCard
-          title="Total Clients"
-          value={totalClients.toString()}
-          subtitle="Registered accounts"
+          title={isAdmin ? "Total Clients" : "Your Chatbots"}
+          value={isAdmin ? totalClients.toString() : activeBots.toString()}
+          subtitle={isAdmin ? "Registered accounts" : `${activeBots} active of ${totalClients} total`}
           icon={<Users className="h-4 w-4 text-stone-400" />}
         />
-        <StatCard
-          title="Active Chatbots"
-          value={activeBots.toString()}
-          subtitle="Currently serving widgets"
-          icon={<Activity className="h-4 w-4 text-emerald-500" />}
-        />
+        {isAdmin && (
+          <StatCard
+            title="Active Chatbots"
+            value={activeBots.toString()}
+            subtitle="Currently serving widgets"
+            icon={<Activity className="h-4 w-4 text-emerald-500" />}
+          />
+        )}
         <StatCard
           title="Total Conversations"
           value={conversations?.length.toString() || "0"}
-          subtitle="Across all clients"
+          subtitle={isAdmin ? "Across all clients" : "Across your bots"}
           icon={<MessageSquareText className="h-4 w-4 text-stone-400" />}
         />
         <StatCard
           title="Total Messages"
           value={totalMessages.toString()}
-          subtitle="Estimated Llama 3.3 usage"
+          subtitle={isAdmin ? "Estimated Llama 3.3 usage" : "Messages exchanged"}
           icon={<Bot className="h-4 w-4 text-stone-400" />}
         />
         <StatCard
-          title="Total Lead Captures"
+          title="Lead Captures"
           value={totalLeads?.toString() || "0"}
           subtitle="Emails collected"
           icon={<MailPlus className="h-4 w-4 text-blue-500" />}
         />
-        <StatCard
-          title="Total Tokens Estimated"
-          value={totalUsageTokens.toLocaleString()}
-          subtitle="Calculated from transcripts"
-          icon={<Zap className="h-4 w-4 text-rose-500" />}
-        />
-        <StatCard
-          title="Deleted Accounts"
-          value={totalDeleted.toString()}
-          subtitle="Audit trail preserved"
-          icon={<UserX className="h-4 w-4 text-stone-400" />}
-        />
+
+        {/* Admin-only cards */}
+        {isAdmin && (
+          <>
+            <StatCard
+              title="Total Tokens Estimated"
+              value={totalUsageTokens.toLocaleString()}
+              subtitle="Calculated from transcripts"
+              icon={<Zap className="h-4 w-4 text-rose-500" />}
+            />
+            <StatCard
+              title="Deleted Accounts"
+              value={totalDeleted.toString()}
+              subtitle="Audit trail preserved"
+              icon={<UserX className="h-4 w-4 text-stone-400" />}
+            />
+          </>
+        )}
       </div>
 
+      {/* ─── User Plan Info (non-admin only) ─── */}
+      {!isAdmin && profile?.subscription_status && (
+        <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100">
+                <Crown className="h-5 w-5 text-rose-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-stone-900 capitalize">
+                  {profile.plan_tier || "starter"} Plan
+                </p>
+                <p className="text-xs text-stone-400">
+                  {["active", "trialing"].includes(profile.subscription_status)
+                    ? "Active subscription"
+                    : profile.subscription_status === "past_due"
+                      ? "Payment past due"
+                      : "No active subscription"}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/settings"
+              className="text-xs font-semibold text-stone-500 transition hover:text-stone-900"
+            >
+              Manage →
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Quick Actions ─── */}
       <div className="mt-8">
         <h2 className="mb-4 text-xl font-semibold text-stone-900">
           Quick Actions
@@ -103,9 +163,11 @@ export async function DashboardOverview() {
               <Users className="h-5 w-5 text-rose-600" />
             </div>
             <div>
-              <div className="font-medium text-stone-900">Manage Clients</div>
+              <div className="font-medium text-stone-900">
+                {isAdmin ? "Manage Clients" : "My Chatbots"}
+              </div>
               <div className="text-sm text-stone-500">
-                View and edit client configurations.
+                {isAdmin ? "View and edit client configurations." : "View and configure your chatbots."}
               </div>
             </div>
           </Link>
@@ -117,17 +179,19 @@ export async function DashboardOverview() {
               <Bot className="h-5 w-5 text-stone-700" />
             </div>
             <div>
-              <div className="font-medium text-stone-900">Deploy New Bot</div>
+              <div className="font-medium text-stone-900">
+                {isAdmin ? "Deploy New Bot" : "Create New Bot"}
+              </div>
               <div className="text-sm text-stone-500">
-                Onboard a new customer to the platform.
+                {isAdmin ? "Onboard a new customer to the platform." : "Launch a new chatbot for your business."}
               </div>
             </div>
           </Link>
         </div>
       </div>
 
-      {/* Deleted Accounts Audit Log — only shows if records exist */}
-      {deletedAccounts && deletedAccounts.length > 0 && (
+      {/* ─── Deleted Accounts Audit Log — admin only ─── */}
+      {isAdmin && deletedAccounts.length > 0 && (
         <div className="mt-8 animate-fade-in-up animation-delay-150">
           <div className="flex items-center gap-2 mb-4">
             <UserX className="h-5 w-5 text-stone-400" />
