@@ -26,15 +26,29 @@ export default async function ClientsPage() {
   const supabase = await createClient();
   const db = supabase as any;
 
+  // Get user + role for explicit filtering (defense-in-depth over RLS)
+  const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user?.id)
+    .maybeSingle();
+  const isAdmin = profile?.role === "admin";
+
+  let clientsQuery = db
+    .from("clients")
+    .select("id, name, slug, is_active, created_at")
+    .order("created_at", { ascending: false });
+  if (!isAdmin && user) {
+    clientsQuery = clientsQuery.eq("user_id", user.id);
+  }
+
   const [
     { data: clientsData, error: clientsError },
     { data: documentsData, error: documentsError },
     { data: conversationsData, error: conversationsError },
   ] = await Promise.all([
-    db
-      .from("clients")
-      .select("id, name, slug, is_active, created_at")
-      .order("created_at", { ascending: false }),
+    clientsQuery,
     db.from("documents").select("client_id"),
     db.from("conversations").select("client_id"),
   ]);

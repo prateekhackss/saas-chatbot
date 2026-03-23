@@ -19,8 +19,12 @@ export async function DashboardOverview() {
 
   const isAdmin = profile?.role === "admin";
 
-  // Fetch user's own clients (RLS filters by user_id for non-admin)
-  const { data: clients } = await db.from("clients").select("id, is_active, name, messages_this_month, plan_tier");
+  // Fetch user's own clients — explicit user_id filter for non-admin (defense-in-depth over RLS)
+  let clientsQuery = db.from("clients").select("id, is_active, name, messages_this_month, plan_tier");
+  if (!isAdmin) {
+    clientsQuery = clientsQuery.eq("user_id", user?.id);
+  }
+  const { data: clients } = await clientsQuery;
   const totalClients = clients?.length || 0;
   const activeBots = clients?.filter((client: any) => client.is_active).length || 0;
 
