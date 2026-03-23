@@ -26,6 +26,7 @@ import { LiveDemoLauncher } from "@/components/landing/live-demo-launcher";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { AnimatedCounter } from "@/components/landing/animated-counter";
 import { ScrollReveal } from "@/components/landing/scroll-reveal";
+import { FaqSection } from "@/components/landing/faq-section";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { Logo } from "@/components/ui/logo";
@@ -829,9 +830,289 @@ export async function MarketingLandingPage() {
         </section>
 
         {/* ══════════════════════════════════════════════
+            USE CASES — Who is this for
+        ══════════════════════════════════════════════ */}
+        <section className="bg-white px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-7xl">
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-sm font-medium text-red-700">
+                  <Users className="h-3.5 w-3.5" />
+                  Use Cases
+                </div>
+                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                  Built for businesses that{" "}
+                  <span className="text-red-500">value their time</span>
+                </h2>
+                <p className="mt-4 text-lg leading-8 text-stone-600">
+                  Whether you run a SaaS, an e-commerce store, or a service
+                  business — NexusChat handles your repetitive support questions
+                  24/7.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  emoji: "🛒",
+                  title: "E-Commerce Stores",
+                  desc: "Answer shipping, return, and product questions instantly. Capture leads and reduce cart abandonment with proactive support.",
+                  stats: "Reduce support tickets by 60%",
+                  examples: ["Shipping & returns", "Product comparisons", "Order tracking help"],
+                },
+                {
+                  emoji: "💻",
+                  title: "SaaS Companies",
+                  desc: "Onboard new users, explain features, and troubleshoot issues around the clock without scaling your support team.",
+                  stats: "24/7 self-service support",
+                  examples: ["Feature walkthroughs", "Billing FAQs", "Integration guides"],
+                },
+                {
+                  emoji: "🏢",
+                  title: "Service Businesses",
+                  desc: "Qualify leads, answer pricing questions, and book consultations while you focus on delivery.",
+                  stats: "Capture 3x more leads",
+                  examples: ["Pricing & packages", "Booking inquiries", "Service descriptions"],
+                },
+                {
+                  emoji: "🎓",
+                  title: "Education & Courses",
+                  desc: "Answer enrollment questions, provide course info, and guide students through your curriculum automatically.",
+                  stats: "Instant enrollment support",
+                  examples: ["Course content info", "Enrollment process", "Pricing & scholarships"],
+                },
+                {
+                  emoji: "🏥",
+                  title: "Healthcare & Wellness",
+                  desc: "Provide information about services, answer insurance questions, and help patients find what they need.",
+                  stats: "Better patient experience",
+                  examples: ["Service descriptions", "Insurance & billing", "Appointment guidance"],
+                },
+                {
+                  emoji: "🏠",
+                  title: "Real Estate",
+                  desc: "Answer property questions, provide neighborhood info, and qualify buyers before they reach your team.",
+                  stats: "Qualify leads automatically",
+                  examples: ["Property details", "Neighborhood info", "Viewing scheduling"],
+                },
+              ].map((useCase, idx) => (
+                <ScrollReveal key={useCase.title} delay={idx * 100}>
+                  <div className="group h-full rounded-3xl border border-stone-200 bg-stone-50 p-6 transition-all duration-300 hover:border-red-200 hover:bg-white hover:shadow-xl hover:shadow-red-500/5">
+                    <div className="flex items-start justify-between">
+                      <span className="text-3xl">{useCase.emoji}</span>
+                      <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-semibold text-red-600 border border-red-100">
+                        {useCase.stats}
+                      </span>
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold tracking-tight text-stone-950">
+                      {useCase.title}
+                    </h3>
+                    <p className="mt-2 text-sm leading-7 text-stone-600">
+                      {useCase.desc}
+                    </p>
+                    <div className="mt-4 space-y-1.5">
+                      {useCase.examples.map((ex) => (
+                        <div
+                          key={ex}
+                          className="flex items-center gap-2 text-xs text-stone-500"
+                        >
+                          <CheckCircle2 className="h-3 w-3 shrink-0 text-red-400/60" />
+                          {ex}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            COMPARISON — Before vs After
+        ══════════════════════════════════════════════ */}
+        <section className="bg-stone-950 px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-7xl">
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                  Without NexusChat{" "}
+                  <span className="text-red-400">vs. With NexusChat</span>
+                </h2>
+                <p className="mt-4 text-lg text-stone-400">
+                  See the difference an AI-powered support bot makes.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-16 grid gap-6 lg:grid-cols-2">
+              {/* Without */}
+              <ScrollReveal delay={100}>
+                <div className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-8">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-800 text-stone-400">
+                      <span className="text-lg">😩</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-stone-300">
+                      Without NexusChat
+                    </h3>
+                  </div>
+                  <div className="mt-6 space-y-4">
+                    {[
+                      "Answering the same questions over and over",
+                      "Losing leads because you can't reply at 2 AM",
+                      "Hiring extra support staff to handle volume",
+                      "Customers waiting hours for simple answers",
+                      "No visibility into what customers ask most",
+                      "Support inbox constantly overflowing",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-start gap-3"
+                      >
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-xs text-red-400">
+                          ✕
+                        </span>
+                        <span className="text-sm text-stone-500">
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+
+              {/* With */}
+              <ScrollReveal delay={200}>
+                <div className="rounded-3xl border border-red-500/20 bg-red-500/[0.03] p-8 glow-red">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
+                      <span className="text-lg">🚀</span>
+                    </div>
+                    <h3 className="text-xl font-semibold text-white">
+                      With NexusChat
+                    </h3>
+                  </div>
+                  <div className="mt-6 space-y-4">
+                    {[
+                      "AI handles 95% of common questions instantly",
+                      "24/7 support — capture leads while you sleep",
+                      "Scale support without scaling headcount",
+                      "Sub-2-second responses powered by Groq",
+                      "Full analytics on every conversation and lead",
+                      "Focus your team on high-value work",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className="flex items-start gap-3"
+                      >
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+                        <span className="text-sm text-stone-300">
+                          {item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
+            TECH STACK — What powers NexusChat
+        ══════════════════════════════════════════════ */}
+        <section className="border-y border-stone-200 bg-stone-50 px-4 py-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-1.5 text-sm font-medium text-stone-700">
+                  <Zap className="h-3.5 w-3.5 text-red-500" />
+                  Powered By
+                </div>
+                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                  Enterprise-grade tech,{" "}
+                  <span className="text-red-500">startup-friendly pricing</span>
+                </h2>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  name: "Llama 3.3 70B",
+                  desc: "State-of-the-art open-source LLM for accurate, helpful responses",
+                  tag: "AI Model",
+                },
+                {
+                  name: "Groq Inference",
+                  desc: "Lightning-fast <2s AI inference with custom hardware acceleration",
+                  tag: "Speed",
+                },
+                {
+                  name: "Jina AI Embeddings",
+                  desc: "High-quality vector embeddings for precise document retrieval",
+                  tag: "RAG",
+                },
+                {
+                  name: "Supabase + pgvector",
+                  desc: "PostgreSQL with vector search for scalable knowledge storage",
+                  tag: "Database",
+                },
+              ].map((tech, idx) => (
+                <ScrollReveal key={tech.name} delay={idx * 100}>
+                  <div className="group h-full rounded-2xl border border-stone-200 bg-white p-5 transition-all duration-300 hover:border-red-200 hover:shadow-lg hover:shadow-red-500/5">
+                    <span className="inline-flex rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-red-600 border border-red-100">
+                      {tech.tag}
+                    </span>
+                    <h4 className="mt-3 text-base font-semibold text-stone-900">
+                      {tech.name}
+                    </h4>
+                    <p className="mt-1.5 text-sm leading-6 text-stone-500">
+                      {tech.desc}
+                    </p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════════
             PRICING
         ══════════════════════════════════════════════ */}
         <PricingSection />
+
+        {/* ══════════════════════════════════════════════
+            FAQ
+        ══════════════════════════════════════════════ */}
+        <section className="bg-white px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
+          <div className="mx-auto max-w-7xl">
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-stone-50 px-4 py-1.5 text-sm font-medium text-stone-700">
+                  <MessageSquareText className="h-3.5 w-3.5 text-red-500" />
+                  FAQ
+                </div>
+                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                  Got questions?{" "}
+                  <span className="text-red-500">We&apos;ve got answers.</span>
+                </h2>
+                <p className="mt-4 text-lg text-stone-600">
+                  Everything you need to know about NexusChat before getting
+                  started.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-14">
+              <ScrollReveal delay={150}>
+                <FaqSection />
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
 
         {/* ══════════════════════════════════════════════
             FINAL CTA
