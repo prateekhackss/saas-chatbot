@@ -55,7 +55,7 @@ export function NotificationBell({
     };
     if (isOpen) document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   const markAllRead = async () => {
     setLoading(true);
@@ -94,42 +94,67 @@ export function NotificationBell({
   };
 
   return (
-    <>
-      {/* Bell Button */}
-      <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen) fetchNotifications();
-        }}
-        className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 transition hover:bg-stone-50 hover:text-stone-900"
-        aria-label="Notifications"
-      >
-        <Bell className="h-4.5 w-4.5" />
-        {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-sm">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </button>
+    <button
+      onClick={() => {
+        setIsOpen(!isOpen);
+        if (!isOpen) fetchNotifications();
+      }}
+      className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 transition hover:bg-stone-50 hover:text-stone-900"
+      aria-label="Notifications"
+    >
+      <Bell className="h-4.5 w-4.5" />
+      {unreadCount > 0 && (
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white shadow-sm">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+}
 
-      {/* Notification Sidebar — matches left sidebar style */}
+/* Separate sidebar panel — rendered by DashboardChrome outside the header */
+export function NotificationPanel({
+  isOpen,
+  onClose,
+  notifications,
+  unreadCount,
+  onMarkAllRead,
+  onMarkOneRead,
+  loading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  notifications: Notification[];
+  unreadCount: number;
+  onMarkAllRead: () => void;
+  onMarkOneRead: (id: string) => void;
+  loading: boolean;
+}) {
+  const timeAgo = (dateStr: string) => {
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (seconds < 60) return "Just now";
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
+
+  return (
+    <>
+      {/* Backdrop — all screens */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-stone-950/50"
-            onClick={() => setIsOpen(false)}
-            aria-label="Close notifications"
-          />
+        <div className="fixed inset-0 z-40" onClick={onClose}>
+          <div className="absolute inset-0 bg-stone-950/30 lg:bg-transparent" />
         </div>
       )}
+
+      {/* Sidebar Panel */}
       <aside
-        className={`fixed right-0 top-0 z-50 flex h-screen w-[252px] flex-col border-l border-neutral-900 bg-[#0A0A0A] text-neutral-100 transition-transform duration-200 ease-out ${
+        className={`fixed right-0 top-0 z-50 flex h-screen w-[280px] flex-col border-l border-neutral-800 bg-[#0A0A0A] text-neutral-100 shadow-2xl transition-transform duration-200 ease-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="border-b border-neutral-900 px-5 py-5">
+        <div className="border-b border-neutral-800 px-5 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Bell className="h-4 w-4 text-[#EF4444]" />
@@ -138,7 +163,7 @@ export function NotificationBell({
               </span>
             </div>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="flex h-8 w-8 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 text-neutral-400 transition hover:text-white"
             >
               <X className="h-4 w-4" />
@@ -150,7 +175,7 @@ export function NotificationBell({
                 {unreadCount} unread
               </span>
               <button
-                onClick={markAllRead}
+                onClick={onMarkAllRead}
                 disabled={loading}
                 className="flex items-center gap-1 text-[10px] font-medium text-neutral-500 transition hover:text-white disabled:opacity-50"
               >
@@ -182,19 +207,23 @@ export function NotificationBell({
                       : "border border-transparent hover:bg-white/5"
                   }`}
                   onClick={() => {
-                    if (!notif.is_read) markOneRead(notif.id);
+                    if (!notif.is_read) onMarkOneRead(notif.id);
                   }}
                 >
-                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
-                    !notif.is_read ? "bg-[#EF4444]/15" : "bg-neutral-900"
-                  }`}>
+                  <div
+                    className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                      !notif.is_read ? "bg-[#EF4444]/15" : "bg-neutral-900"
+                    }`}
+                  >
                     {TYPE_ICONS[notif.type] || <Bell className="h-4 w-4 text-neutral-500" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-1.5">
-                      <p className={`text-xs leading-tight ${
-                        !notif.is_read ? "font-semibold text-white" : "font-medium text-neutral-400"
-                      }`}>
+                      <p
+                        className={`text-xs leading-tight ${
+                          !notif.is_read ? "font-semibold text-white" : "font-medium text-neutral-400"
+                        }`}
+                      >
                         {notif.title}
                       </p>
                       {!notif.is_read && (

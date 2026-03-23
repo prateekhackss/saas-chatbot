@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   ChevronRight,
@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { LogoutButton } from "@/components/dashboard/logout-button";
-import { NotificationBell } from "@/components/dashboard/notification-bell";
+import { NotificationBell, NotificationPanel } from "@/components/dashboard/notification-bell";
 import { Logo } from "@/components/ui/logo";
 
 type DashboardChromeProps = {
@@ -22,6 +22,16 @@ type DashboardChromeProps = {
   isAdmin: boolean;
   hasActiveSubscription?: boolean;
   children: React.ReactNode;
+};
+
+type Notification = {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  client_id: string | null;
+  is_read: boolean;
+  created_at: string;
 };
 
 const navigationItems = [
@@ -60,38 +70,78 @@ export function DashboardChrome({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifLoading, setNotifLoading] = useState(false);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/notifications?limit=15");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  const handleToggleNotifications = useCallback(
+    (open: boolean) => {
+      setIsNotificationsOpen(open);
+      if (open) fetchNotifications();
+    },
+    [fetchNotifications]
+  );
+
+  const handleMarkAllRead = useCallback(async () => {
+    setNotifLoading(true);
+    try {
+      await fetch("/api/admin/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch {}
+    setNotifLoading(false);
+  }, []);
+
+  const handleMarkOneRead = useCallback(async (id: string) => {
+    try {
+      await fetch("/api/admin/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationIds: [id] }),
+      });
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch {}
+  }, []);
 
   const pageTitle = useMemo(() => {
-    if (pathname === "/dashboard") {
-      return "Overview";
-    }
-    if (pathname === "/clients") {
-      return "Clients";
-    }
-    if (pathname === "/clients/new") {
-      return "New Client";
-    }
-    if (pathname.endsWith("/documents")) {
-      return "Documents";
-    }
-    if (pathname.endsWith("/analytics")) {
-      return "Analytics";
-    }
-    if (pathname.startsWith("/clients/")) {
-      return "Client Details";
-    }
-    if (pathname === "/settings") {
-      return "Settings";
-    }
+    if (pathname === "/dashboard") return "Overview";
+    if (pathname === "/clients") return "Clients";
+    if (pathname === "/clients/new") return "New Client";
+    if (pathname.endsWith("/documents")) return "Documents";
+    if (pathname.endsWith("/analytics")) return "Analytics";
+    if (pathname.startsWith("/clients/")) return "Client Details";
+    if (pathname === "/settings") return "Settings";
     return "Dashboard";
   }, [pathname]);
 
   const breadcrumbs = useMemo(() => {
     const items = [{ label: "Dashboard", href: "/dashboard" }];
 
-    if (pathname === "/dashboard") {
-      return items;
-    }
+    if (pathname === "/dashboard") return items;
 
     if (pathname === "/settings") {
       items.push({ label: "Settings", href: "/settings" });
@@ -108,7 +158,10 @@ export function DashboardChrome({
     }
 
     if (pathname.startsWith("/clients/") && pathname !== "/clients") {
-      items.push({ label: "Workspace", href: pathname.split("/").slice(0, 3).join("/") });
+      items.push({
+        label: "Workspace",
+        href: pathname.split("/").slice(0, 3).join("/"),
+      });
     }
 
     if (pathname.endsWith("/documents")) {
@@ -123,7 +176,8 @@ export function DashboardChrome({
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-neutral-900 bg-[#0A0A0A] text-neutral-100 lg:flex sticky top-0 h-screen overflow-y-auto">
+        {/* Left Sidebar — fixed on scroll */}
+        <aside className="hidden w-[252px] shrink-0 flex-col border-r border-neutral-900 bg-[#0A0A0A] text-neutral-100 lg:flex fixed top-0 left-0 h-screen overflow-y-auto z-30">
           <SidebarContent
             pathname={pathname}
             userEmail={userEmail}
@@ -132,8 +186,9 @@ export function DashboardChrome({
           />
         </aside>
 
-        <div className={`flex min-w-0 flex-1 flex-col transition-[margin] duration-200 ${isNotificationsOpen ? "mr-[252px]" : ""}`}>
-          <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur">
+        {/* Main content — offset by left sidebar width */}
+        <div className="flex min-w-0 flex-1 flex-col lg:ml-[252px]">
+          <header className="sticky top-0 z-20 border-b border-stone-200/80 bg-white/90 backdrop-blur">
             <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-3">
                 <button
@@ -148,8 +203,13 @@ export function DashboardChrome({
                 <div className="space-y-1">
                   <div className="flex max-w-[72vw] items-center gap-2 overflow-x-auto whitespace-nowrap text-xs font-medium uppercase tracking-[0.2em] text-stone-400 sm:max-w-none">
                     {breadcrumbs.map((crumb, index) => (
-                      <span key={`${crumb.href}-${index}`} className="flex items-center gap-2">
-                        {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
+                      <span
+                        key={`${crumb.href}-${index}`}
+                        className="flex items-center gap-2"
+                      >
+                        {index > 0 ? (
+                          <ChevronRight className="h-3 w-3" />
+                        ) : null}
                         <Link
                           href={crumb.href}
                           className="transition hover:text-stone-600"
@@ -165,6 +225,7 @@ export function DashboardChrome({
                 </div>
               </div>
 
+              {/* Right side — profile pill + notification bell (rightmost) */}
               <div className="hidden items-center gap-3 sm:flex">
                 <div className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-600 shadow-sm">
                   <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-100 text-xs font-semibold text-stone-900">
@@ -178,7 +239,10 @@ export function DashboardChrome({
                     </span>
                   )}
                 </div>
-                <NotificationBell isOpen={isNotificationsOpen} onToggle={setIsNotificationsOpen} />
+                <NotificationBell
+                  isOpen={isNotificationsOpen}
+                  onToggle={handleToggleNotifications}
+                />
               </div>
             </div>
           </header>
@@ -189,6 +253,18 @@ export function DashboardChrome({
         </div>
       </div>
 
+      {/* Notification Panel — rendered as overlay, doesn't push content */}
+      <NotificationPanel
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAllRead={handleMarkAllRead}
+        onMarkOneRead={handleMarkOneRead}
+        loading={notifLoading}
+      />
+
+      {/* Mobile menu overlay */}
       {isMobileMenuOpen ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
@@ -205,7 +281,9 @@ export function DashboardChrome({
                   <div className="text-sm font-archivo tracking-tight text-white">
                     Nexus<span className="text-[#EF4444]">Chat</span>
                   </div>
-                  <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">Admin workspace</div>
+                  <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">
+                    Admin workspace
+                  </div>
                 </div>
               </div>
               <button
@@ -268,14 +346,18 @@ function SidebarContent({
   return (
     <>
       <div className="border-b border-neutral-900 px-5 py-5">
-        <Link href="/dashboard" className="flex items-center gap-3" onClick={onNavigate}>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3"
+          onClick={onNavigate}
+        >
           <Logo size="sm" variant="icon" />
           <div>
             <div className="text-sm font-archivo tracking-tight text-white">
               Nexus<span className="text-[#EF4444]">Chat</span>
             </div>
             <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">
-              {isAdmin ? 'Admin' : 'Operations'} Console
+              {isAdmin ? "Admin" : "Operations"} Console
             </div>
           </div>
         </Link>
@@ -334,7 +416,9 @@ function SidebarContent({
               </span>
             )}
           </div>
-          <div className="mt-2 truncate text-sm text-neutral-300">{userEmail}</div>
+          <div className="mt-2 truncate text-sm text-neutral-300">
+            {userEmail}
+          </div>
         </div>
         <LogoutButton tone="dark" />
       </div>
@@ -346,7 +430,8 @@ function getIsActive(pathname: string, href: string) {
   if (href === "/clients") {
     return (
       pathname === "/clients" ||
-      (pathname.startsWith("/clients/") && !pathname.startsWith("/clients/new"))
+      (pathname.startsWith("/clients/") &&
+        !pathname.startsWith("/clients/new"))
     );
   }
 
@@ -355,9 +440,7 @@ function getIsActive(pathname: string, href: string) {
 
 function getInitials(email: string) {
   const trimmed = email.trim();
-  if (!trimmed) {
-    return "U";
-  }
+  if (!trimmed) return "U";
 
   const [localPart] = trimmed.split("@");
   return localPart.slice(0, 2).toUpperCase();
