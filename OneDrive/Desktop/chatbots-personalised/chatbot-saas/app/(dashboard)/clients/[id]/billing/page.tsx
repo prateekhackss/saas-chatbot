@@ -48,7 +48,7 @@ export default async function ClientBillingPage({
       </div>
 
       {/* Reusing the landing page pricing cards with LemonSqueezy checkout */}
-      <div className="-mx-4 sm:-mx-6 lg:-mx-8 border-none mt-8">
+      <div className="-mx-4 sm:-mx-4 lg:-mx-6 border-none mt-8 overflow-hidden">
         <PricingSection clientId={client.id} userEmail={user.email} currentPlan={client.plan_tier} />
       </div>
     </div>

@@ -42,7 +42,7 @@ export function ConversationViewer({
             {/* Row Header — clickable */}
             <button
               onClick={() => toggle(conversation.id)}
-              className="w-full text-left px-6 py-5 transition hover:bg-stone-50/80 focus:outline-none"
+              className="w-full text-left px-4 py-4 sm:px-6 sm:py-5 transition hover:bg-stone-50/80 focus:outline-none"
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -89,7 +89,7 @@ export function ConversationViewer({
 
             {/* Expanded Chat Transcript */}
             {isExpanded && (
-              <div className="border-t border-stone-100 bg-stone-50/50 px-6 py-4">
+              <div className="border-t border-stone-100 bg-stone-50/50 px-4 py-4 sm:px-6">
                 {/* Visitor info header */}
                 {conversation.visitorEmail && (
                   <div className="mb-4 flex items-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-xs text-blue-700">
@@ -112,7 +112,7 @@ export function ConversationViewer({
                 </div>
 
                 {/* Metadata footer */}
-                <div className="mt-4 flex items-center gap-4 border-t border-stone-200 pt-3 text-[11px] text-stone-400">
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-stone-200 pt-3 text-[11px] text-stone-400">
                   <span>
                     Started{" "}
                     {new Date(conversation.created_at).toLocaleString("en-US", {
@@ -163,7 +163,7 @@ function ChatBubble({ message }: { message: Message }) {
         </div>
       )}
       <div
-        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 text-sm leading-relaxed ${
           isUser
             ? "bg-stone-900 text-white rounded-br-md"
             : "bg-white border border-stone-200 text-stone-700 rounded-bl-md"

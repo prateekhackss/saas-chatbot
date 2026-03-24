@@ -129,7 +129,7 @@ export default async function ClientsPage() {
               Client Directory
             </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+          <h1 className="text-2xl font-bold tracking-tight text-stone-950 sm:text-3xl">
             Your Clients
           </h1>
           <p className="text-sm text-stone-500">

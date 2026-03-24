@@ -437,7 +437,7 @@ export function ClientDetailPanel({
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <SummaryCard
           title="Knowledge Base"
           value={`${docCount} ${docCount === 1 ? "Document" : "Documents"}`}
@@ -472,7 +472,7 @@ export function ClientDetailPanel({
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.9fr]">
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
         <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-3 border-b border-stone-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -940,7 +940,7 @@ export function ClientDetailPanel({
                 Preview URL: {safeHostUrl}/widget/{slug || clientState.slug}
               </p>
             </div>
-            <div className="relative h-[620px] bg-stone-100">
+            <div className="relative h-[400px] sm:h-[520px] lg:h-[620px] bg-stone-100">
               <iframe
                 key={slug || clientState.slug}
                 src={`${safeHostUrl}/widget/${slug || clientState.slug}`}
@@ -971,25 +971,25 @@ function SummaryCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-stone-400">
+    <div className="rounded-2xl sm:rounded-[1.75rem] border border-stone-200 bg-white p-4 sm:p-6 shadow-sm">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-stone-400">
             {title}
           </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-stone-950">
+          <h2 className="mt-2 sm:mt-3 text-lg sm:text-2xl font-semibold tracking-tight text-stone-950 truncate">
             {value}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-stone-500">{description}</p>
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm leading-5 sm:leading-6 text-stone-500 line-clamp-2">{description}</p>
         </div>
-        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-100 text-stone-700">
+        <div className="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-stone-100 text-stone-700">
           {icon}
         </div>
       </div>
 
       <Link
         href={href}
-        className="mt-6 inline-flex text-sm font-semibold text-teal-700 transition hover:text-teal-800"
+        className="mt-3 sm:mt-6 inline-flex text-xs sm:text-sm font-semibold text-teal-700 transition hover:text-teal-800"
       >
         {linkText} {"->"}
       </Link>

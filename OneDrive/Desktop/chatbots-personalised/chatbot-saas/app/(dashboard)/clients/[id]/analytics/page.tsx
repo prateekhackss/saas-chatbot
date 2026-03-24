@@ -121,16 +121,16 @@ export default async function AnalyticsPage({
     <div className="mx-auto max-w-7xl space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/20">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/20">
               <BarChart3 className="h-4 w-4 text-white" />
             </div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
               Analytics
             </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+          <h1 className="text-2xl font-bold tracking-tight text-stone-950 sm:text-3xl truncate">
             {client.name}
           </h1>
           <p className="text-sm text-stone-500">
@@ -147,7 +147,7 @@ export default async function AnalyticsPage({
       </div>
 
       {/* Stats */}
-      <div className={`grid gap-3 sm:grid-cols-2 ${isAdmin ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
+      <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 ${isAdmin ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
         <AnalyticsStatCard
           title="Conversations"
           value={String(totalConversations)}

@@ -116,7 +116,7 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-rose-400">
               Pricing
             </p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
               Simple, transparent pricing that scales with you.
             </h2>
             <p className="mt-4 text-lg leading-8 text-stone-300">
@@ -173,7 +173,7 @@ export function PricingSection({ clientId, userEmail, currentPlan }: { clientId?
                     {plan.name}
                   </h3>
                   <div className="mt-4 flex items-baseline gap-2">
-                    <span className="text-6xl font-semibold tracking-tight">
+                    <span className="text-4xl font-semibold tracking-tight sm:text-6xl">
                       ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                     </span>
                     <span

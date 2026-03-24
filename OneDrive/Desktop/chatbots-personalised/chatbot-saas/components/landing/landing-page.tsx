@@ -173,14 +173,14 @@ export async function MarketingLandingPage() {
               </div>
 
               {/* Headline */}
-              <h1 className="mt-8 text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-7xl animate-slide-up animation-delay-150">
+              <h1 className="mt-8 text-3xl font-semibold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl animate-slide-up animation-delay-150">
                 Your AI support bot.{" "}
                 <span className="text-gradient">
                   Trained on your business.
                 </span>
               </h1>
 
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-stone-400 animate-slide-up animation-delay-300">
+              <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-stone-400 sm:text-lg sm:leading-8 animate-slide-up animation-delay-300">
                 NexusChat deploys a branded AI chatbot widget on your site —
                 trained on your docs, styled to your brand, managed from your
                 dashboard. No AI expertise needed.
@@ -228,7 +228,7 @@ export async function MarketingLandingPage() {
                     </div>
                   </div>
                   {/* Dashboard mockup content */}
-                  <div className="mt-4 grid grid-cols-4 gap-3">
+                  <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                     {[
                       { label: "Active Bots", value: "3", color: "text-emerald-400" },
                       { label: "Conversations", value: "1,247", color: "text-blue-400" },
@@ -240,14 +240,14 @@ export async function MarketingLandingPage() {
                         className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
                       >
                         <div className="text-xs text-stone-500">{stat.label}</div>
-                        <div className={`mt-1 text-2xl font-semibold tracking-tight ${stat.color}`}>
+                        <div className={`mt-1 text-lg font-semibold tracking-tight sm:text-2xl ${stat.color}`}>
                           {stat.value}
                         </div>
                       </div>
                     ))}
                   </div>
                   {/* Conversation preview rows */}
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 space-y-2 hidden sm:block">
                     {[
                       { visitor: "Sarah M.", msg: "How do I reset my password?", time: "2m ago", status: "bg-emerald-400" },
                       { visitor: "Mike D.", msg: "What are your pricing plans?", time: "5m ago", status: "bg-emerald-400" },
@@ -281,7 +281,7 @@ export async function MarketingLandingPage() {
               </div>
 
               {/* Floating chat widget card */}
-              <div className="absolute -right-4 -bottom-8 w-[260px] animate-float rounded-2xl border border-white/[0.08] bg-stone-900 p-1 shadow-2xl sm:-right-12 lg:-right-16">
+              <div className="absolute -right-2 -bottom-6 w-[200px] animate-float rounded-2xl border border-white/[0.08] bg-stone-900 p-1 shadow-2xl sm:-right-8 sm:-bottom-8 sm:w-[260px] lg:-right-16">
                 <div className="rounded-xl overflow-hidden">
                   <div className="bg-red-500 px-4 py-3 flex items-center gap-2">
                     <Bot className="h-4 w-4 text-white" />
@@ -305,7 +305,7 @@ export async function MarketingLandingPage() {
               </div>
 
               {/* Floating notification badge */}
-              <div className="absolute -left-2 top-1/3 animate-float-delayed rounded-xl border border-white/[0.08] bg-stone-900 px-4 py-3 shadow-xl sm:-left-8 lg:-left-12">
+              <div className="absolute -left-1 top-1/4 hidden animate-float-delayed rounded-xl border border-white/[0.08] bg-stone-900 px-3 py-2 shadow-xl sm:block sm:-left-8 sm:top-1/3 sm:px-4 sm:py-3 lg:-left-12">
                 <div className="flex items-center gap-2">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15">
                     <Zap className="h-4 w-4 text-emerald-400" />
@@ -360,7 +360,7 @@ export async function MarketingLandingPage() {
                   <Layers className="h-3.5 w-3.5" />
                   Platform Features
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
                   Everything you need to{" "}
                   <span className="text-red-500">automate support</span>
                 </h2>
@@ -494,7 +494,7 @@ export async function MarketingLandingPage() {
                   <Rocket className="h-3.5 w-3.5 text-red-400" />
                   How It Works
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                   Live in <span className="text-red-400">3 simple steps</span>
                 </h2>
                 <p className="mt-4 text-lg text-stone-400">
@@ -626,7 +626,7 @@ export async function MarketingLandingPage() {
               ].map((stat, idx) => (
                 <ScrollReveal key={stat.label} delay={idx * 100}>
                   <div className="text-center">
-                    <div className="text-5xl font-semibold tracking-tight text-stone-950">
+                    <div className="text-3xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
                       <AnimatedCounter
                         target={stat.value}
                         suffix={stat.suffix}
@@ -660,7 +660,7 @@ export async function MarketingLandingPage() {
                     <Bot className="h-3.5 w-3.5" />
                     Live Demo
                   </div>
-                  <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                  <h2 className="mt-6 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
                     Try it right now.{" "}
                     <span className="text-red-500">No signup needed.</span>
                   </h2>
@@ -752,7 +752,7 @@ export async function MarketingLandingPage() {
                   <Code2 className="h-3.5 w-3.5 text-red-400" />
                   Integration
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                   One line of code. That&apos;s it.
                 </h2>
                 <p className="mt-4 text-lg text-stone-400">
@@ -840,7 +840,7 @@ export async function MarketingLandingPage() {
                   <Users className="h-3.5 w-3.5" />
                   Use Cases
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
                   Built for businesses that{" "}
                   <span className="text-red-500">value their time</span>
                 </h2>
@@ -936,7 +936,7 @@ export async function MarketingLandingPage() {
           <div className="mx-auto max-w-7xl">
             <ScrollReveal>
               <div className="mx-auto max-w-2xl text-center">
-                <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
                   Without NexusChat{" "}
                   <span className="text-red-400">vs. With NexusChat</span>
                 </h2>
@@ -1031,7 +1031,7 @@ export async function MarketingLandingPage() {
                   <Zap className="h-3.5 w-3.5 text-red-500" />
                   Powered By
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
                   Enterprise-grade tech,{" "}
                   <span className="text-red-500">startup-friendly pricing</span>
                 </h2>
@@ -1095,7 +1095,7 @@ export async function MarketingLandingPage() {
                   <MessageSquareText className="h-3.5 w-3.5 text-red-500" />
                   FAQ
                 </div>
-                <h2 className="mt-6 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
+                <h2 className="mt-6 text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl md:text-5xl">
                   Got questions?{" "}
                   <span className="text-red-500">We&apos;ve got answers.</span>
                 </h2>
@@ -1125,9 +1125,8 @@ export async function MarketingLandingPage() {
 
           <div className="relative mx-auto max-w-3xl text-center">
             <ScrollReveal>
-              <h2 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Ready to automate your
-                <br />
+              <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
+                Ready to automate your{" "}
                 <span className="text-gradient">customer support?</span>
               </h2>
               <p className="mx-auto mt-6 max-w-xl text-lg text-stone-400">
@@ -1163,9 +1162,9 @@ export async function MarketingLandingPage() {
       ══════════════════════════════════════════════ */}
       <footer className="border-t border-white/[0.06] bg-stone-950 px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 md:grid-cols-4">
+          <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-4">
             {/* Brand */}
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2 md:col-span-2">
               <Logo tone="dark" size="md" />
               <p className="mt-4 max-w-xs text-sm leading-7 text-stone-500">
                 AI-powered customer support chatbots, trained on your business

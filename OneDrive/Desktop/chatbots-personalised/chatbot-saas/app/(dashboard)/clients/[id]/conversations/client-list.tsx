@@ -77,45 +77,47 @@ export default function ConversationList({
 
         return (
           <div key={conv.id} className="border border-stone-200 bg-white rounded-2xl overflow-hidden shadow-sm transition-all">
-            <div 
-              className={`p-4 flex items-center justify-between cursor-pointer hover:bg-stone-50 transition ${isExpanded ? 'bg-stone-50 border-b border-stone-100' : ''}`}
+            <div
+              className={`p-3 sm:p-4 flex items-start sm:items-center justify-between cursor-pointer hover:bg-stone-50 transition gap-2 ${isExpanded ? 'bg-stone-50 border-b border-stone-100' : ''}`}
               onClick={() => setExpandedId(isExpanded ? null : conv.id)}
             >
-              <div className="flex items-center gap-4 flex-1 overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 flex-1 overflow-hidden min-w-0">
                 <div className="shrink-0 flex items-center gap-2">
                   {conv.resolved ? (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] font-medium text-emerald-700">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      Resolved
+                      <span className="hidden sm:inline">Resolved</span>
+                      <span className="sm:hidden">Done</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-[11px] font-medium text-amber-700">
                       <XCircle className="h-3.5 w-3.5" />
-                      Needs Attention
+                      <span className="hidden sm:inline">Needs Attention</span>
+                      <span className="sm:hidden">Open</span>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-stone-900 truncate">
                     {firstMessage}
                   </p>
-                  <div className="flex items-center gap-3 mt-0.5 text-xs text-stone-500">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-xs text-stone-500">
                     <span>{format(new Date(conv.created_at), "MMM d, yyyy h:mm a")}</span>
-                    <span>•</span>
+                    <span className="hidden sm:inline">•</span>
                     <span>{conv.message_count} messages</span>
                   </div>
                 </div>
               </div>
-              
-              <div className="shrink-0 ml-4 flex items-center gap-2 text-stone-400">
+
+              <div className="shrink-0 ml-2 sm:ml-4 flex items-center gap-2 text-stone-400 mt-1 sm:mt-0">
                 {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
               </div>
             </div>
 
             {isExpanded && (
-              <div className="bg-stone-50/50 p-6 flex flex-col gap-4">
-                <div className="flex justify-between items-center mb-2">
+              <div className="bg-stone-50/50 p-4 sm:p-6 flex flex-col gap-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-2">
                   <h4 className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Transcript</h4>
                   <button 
                     onClick={(e) => {
