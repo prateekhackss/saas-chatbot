@@ -15,6 +15,7 @@ import {
   Globe,
   Key,
   MessageSquareText,
+  Settings,
   Shield,
   User,
   Users,
@@ -47,14 +48,11 @@ export default async function SettingsPage() {
     .maybeSingle();
 
   const isAdmin = profile?.role === "admin";
-
-  // User-level subscription check
   const hasActiveSub = ["active", "trialing", "past_due"].includes(
     profile?.subscription_status || ""
   );
   const userPlanTier = (profile?.plan_tier || "starter") as PlanTier;
 
-  // Fetch user's clients for billing/usage section
   const { data: clients } = await db
     .from("clients")
     .select(
@@ -64,7 +62,6 @@ export default async function SettingsPage() {
 
   const activeClients = (clients || []).filter((c: any) => c.is_active);
 
-  // Admin stats
   let adminStats = null;
   if (isAdmin) {
     const [
@@ -95,15 +92,20 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      {/* Page Header */}
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-400">
-          Preferences
-        </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-stone-950">
+      {/* Header */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-stone-700 to-stone-900 shadow-lg shadow-stone-500/10">
+            <Settings className="h-4 w-4 text-white" />
+          </div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
+            Preferences
+          </p>
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-950">
           Account Settings
         </h1>
-        <p className="mt-2 text-sm text-stone-500">
+        <p className="text-sm text-stone-500">
           Manage your profile, security, notifications, and data.
         </p>
       </div>
@@ -113,6 +115,7 @@ export default async function SettingsPage() {
         icon={<User className="h-5 w-5" />}
         title="Profile Information"
         description="Your personal details and preferences"
+        gradient="from-violet-500 to-purple-600"
       >
         <div className="mb-5 grid gap-3 sm:grid-cols-2">
           <ReadonlyField label="Email" value={user.email || "—"} />
@@ -140,12 +143,15 @@ export default async function SettingsPage() {
       <SettingsSection
         icon={<CreditCard className="h-5 w-5" />}
         title="Billing & Usage"
-        description="Your current plan, usage stats, and subscription management"
+        description="Your current plan, usage stats, and subscription"
+        gradient="from-emerald-500 to-teal-600"
       >
         {activeClients.length === 0 ? (
-          <div className="rounded-xl border border-stone-100 bg-stone-50 p-6 text-center">
-            <Zap className="mx-auto h-8 w-8 text-stone-400" />
-            <p className="mt-3 text-sm font-medium text-stone-600">
+          <div className="rounded-xl border border-stone-100 bg-stone-50 p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-stone-200">
+              <Zap className="h-6 w-6 text-stone-500" />
+            </div>
+            <p className="mt-4 text-sm font-medium text-stone-600">
               No active chatbots yet
             </p>
             <p className="mt-1 text-xs text-stone-400">
@@ -161,7 +167,6 @@ export default async function SettingsPage() {
         ) : (
           <div className="space-y-3">
             {activeClients.map((client: any) => {
-              // Use user's plan tier for limits (not per-client tier)
               const limits = PLAN_LIMITS[userPlanTier];
               const used = client.messages_this_month || 0;
               const pct = Math.min((used / limits.maxMessages) * 100, 100);
@@ -169,11 +174,11 @@ export default async function SettingsPage() {
               return (
                 <div
                   key={client.id}
-                  className="rounded-xl border border-stone-200 bg-white p-4"
+                  className="group rounded-xl border border-stone-200 bg-white p-4 transition-all hover:shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-stone-100 to-stone-200">
                         <MessageSquareText className="h-5 w-5 text-stone-500" />
                       </div>
                       <div>
@@ -182,8 +187,7 @@ export default async function SettingsPage() {
                         </h3>
                         <p className="text-xs text-stone-400">
                           <span className="capitalize">{userPlanTier}</span> Plan
-                          {profile?.subscription_status === "trialing" &&
-                            " — Trial"}
+                          {profile?.subscription_status === "trialing" && " — Trial"}
                         </p>
                       </div>
                     </div>
@@ -197,21 +201,19 @@ export default async function SettingsPage() {
 
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-stone-500">
-                        Messages this month
-                      </span>
+                      <span className="text-stone-500">Messages this month</span>
                       <span className="font-semibold text-stone-700">
                         {used.toLocaleString()} / {limits.maxMessages.toLocaleString()}
                       </span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-stone-100">
                       <div
-                        className={`h-full rounded-full transition-all ${
+                        className={`h-full rounded-full transition-all duration-500 ${
                           pct >= 90
-                            ? "bg-red-500"
+                            ? "bg-gradient-to-r from-red-500 to-rose-500"
                             : pct >= 70
-                              ? "bg-amber-500"
-                              : "bg-emerald-500"
+                              ? "bg-gradient-to-r from-amber-500 to-orange-500"
+                              : "bg-gradient-to-r from-emerald-500 to-teal-500"
                         }`}
                         style={{ width: `${pct}%` }}
                       />
@@ -255,6 +257,7 @@ export default async function SettingsPage() {
         icon={<Bell className="h-5 w-5" />}
         title="Notifications"
         description="Choose what updates you want to receive"
+        gradient="from-amber-500 to-orange-600"
       >
         <NotificationSettings initial={notificationPrefs} planTier={userPlanTier} />
       </SettingsSection>
@@ -264,53 +267,40 @@ export default async function SettingsPage() {
         icon={<Shield className="h-5 w-5" />}
         title="Security"
         description="Manage your account security and authentication"
+        gradient="from-blue-500 to-cyan-600"
       >
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
-            <div>
-              <div className="text-sm font-medium text-stone-900">
-                Password
-              </div>
-              <div className="text-xs text-stone-400">
-                Change your account password via email reset
-              </div>
-            </div>
-            <a
-              href="/forgot-password"
-              className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50 hover:text-stone-900"
-            >
-              Reset Password
-            </a>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
-            <div>
-              <div className="text-sm font-medium text-stone-900">
-                Two-Factor Authentication
-              </div>
-              <div className="text-xs text-stone-400">
-                Additional security for your account (coming soon)
-              </div>
-            </div>
-            <span className="rounded-lg bg-stone-200 px-3 py-1.5 text-xs font-medium text-stone-500">
-              Coming Soon
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
-            <div>
-              <div className="text-sm font-medium text-stone-900">
-                Active Sessions
-              </div>
-              <div className="text-xs text-stone-400">
-                You are currently signed in as {user.email}
-              </div>
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Active
-            </span>
-          </div>
+          <SecurityRow
+            title="Password"
+            subtitle="Change your account password via email reset"
+            action={
+              <a
+                href="/forgot-password"
+                className="rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50 hover:text-stone-900"
+              >
+                Reset
+              </a>
+            }
+          />
+          <SecurityRow
+            title="Two-Factor Authentication"
+            subtitle="Additional security for your account"
+            action={
+              <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-medium text-stone-500">
+                Coming Soon
+              </span>
+            }
+          />
+          <SecurityRow
+            title="Active Sessions"
+            subtitle={`Signed in as ${user.email}`}
+            action={
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active
+              </span>
+            }
+          />
         </div>
       </SettingsSection>
 
@@ -319,20 +309,17 @@ export default async function SettingsPage() {
         icon={<Database className="h-5 w-5" />}
         title="Data & Privacy"
         description="Manage your data, export, and privacy preferences"
+        gradient="from-pink-500 to-rose-600"
       >
         <div className="space-y-4">
-          <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-stone-900">
-                  Export Your Data
-                </div>
-                <div className="text-xs text-stone-400">
-                  Download all your data as JSON (GDPR data portability)
-                </div>
+          <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
+            <div>
+              <div className="text-sm font-medium text-stone-900">Export Your Data</div>
+              <div className="text-xs text-stone-400">
+                Download all your data as JSON (GDPR data portability)
               </div>
-              <ExportDataButton />
             </div>
+            <ExportDataButton />
           </div>
 
           <div className="flex gap-3">
@@ -357,45 +344,49 @@ export default async function SettingsPage() {
       {/* ─── ADMIN SECTION ─── */}
       {isAdmin && adminStats && (
         <>
-          <div className="flex items-center gap-2">
-            <div className="h-px flex-1 bg-rose-200" />
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-500">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 border border-rose-200 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-rose-500">
               <Crown className="h-3 w-3" />
               Admin Controls
             </span>
-            <div className="h-px flex-1 bg-rose-200" />
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
           </div>
 
           <SettingsSection
             icon={<Building2 className="h-5 w-5" />}
             title="Platform Overview"
             description="Global platform statistics and health"
-            accent="rose"
+            gradient="from-rose-500 to-red-600"
           >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <AdminStatCard
                 icon={<Users className="h-4 w-4" />}
-                label="Total Users"
+                label="Users"
                 value={adminStats.totalUsers}
+                gradient="from-violet-500 to-purple-600"
               />
               <AdminStatCard
                 icon={<Globe className="h-4 w-4" />}
-                label="Total Bots"
+                label="Bots"
                 value={adminStats.totalClients}
+                gradient="from-blue-500 to-cyan-600"
               />
               <AdminStatCard
                 icon={<MessageSquareText className="h-4 w-4" />}
-                label="Conversations"
+                label="Chats"
                 value={adminStats.totalConversations}
+                gradient="from-emerald-500 to-teal-600"
               />
               <AdminStatCard
                 icon={<FileText className="h-4 w-4" />}
-                label="Documents"
+                label="Docs"
                 value={adminStats.totalDocuments}
+                gradient="from-amber-500 to-orange-600"
               />
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4">
               <Link
                 href="/dashboard"
                 className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
@@ -409,59 +400,21 @@ export default async function SettingsPage() {
             icon={<Key className="h-5 w-5" />}
             title="API & Integrations"
             description="Manage platform-level API keys and webhooks"
-            accent="rose"
+            gradient="from-rose-500 to-red-600"
           >
             <div className="space-y-3">
-              <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-stone-900">
-                      Webhook Endpoint (LemonSqueezy)
-                    </div>
-                    <div className="mt-1 font-mono text-xs text-stone-400">
-                      /api/webhooks/lemonsqueezy
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-stone-900">
-                      Chat API Endpoint
-                    </div>
-                    <div className="mt-1 font-mono text-xs text-stone-400">
-                      /api/chat
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-stone-100 bg-stone-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-stone-900">
-                      Embed Widget Endpoint
-                    </div>
-                    <div className="mt-1 font-mono text-xs text-stone-400">
-                      /api/embed/[slug]
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Active
-                  </span>
-                </div>
-              </div>
+              <EndpointRow
+                title="Webhook Endpoint (LemonSqueezy)"
+                path="/api/webhooks/lemonsqueezy"
+              />
+              <EndpointRow
+                title="Chat API Endpoint"
+                path="/api/chat"
+              />
+              <EndpointRow
+                title="Embed Widget Endpoint"
+                path="/api/embed/[slug]"
+              />
             </div>
           </SettingsSection>
         </>
@@ -469,12 +422,12 @@ export default async function SettingsPage() {
 
       {/* ─── DANGER ZONE ─── */}
       <div>
-        <div className="mb-3 flex items-center gap-2">
-          <div className="h-px flex-1 bg-red-200" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-200 to-transparent" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-red-400">
             Danger Zone
           </span>
-          <div className="h-px flex-1 bg-red-200" />
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-red-200 to-transparent" />
         </div>
         <DeleteAccountForm />
       </div>
@@ -488,33 +441,27 @@ function SettingsSection({
   icon,
   title,
   description,
-  accent,
+  gradient,
   children,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  accent?: "rose";
+  gradient: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[1.5rem] border border-stone-200 bg-white p-6 shadow-sm">
-      <div className="mb-5 flex items-center gap-3">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            accent === "rose"
-              ? "bg-rose-100 text-rose-600"
-              : "bg-stone-100 text-stone-600"
-          }`}
-        >
+    <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all hover:shadow-md">
+      <div className="mb-0 flex items-center gap-3 border-b border-stone-100 px-6 py-4">
+        <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg`}>
           {icon}
         </div>
         <div>
-          <h2 className="text-base font-semibold text-stone-900">{title}</h2>
+          <h2 className="text-sm font-semibold text-stone-900">{title}</h2>
           <p className="text-xs text-stone-400">{description}</p>
         </div>
       </div>
-      {children}
+      <div className="p-6">{children}</div>
     </section>
   );
 }
@@ -532,7 +479,7 @@ function ReadonlyField({
 }) {
   return (
     <div className="rounded-xl border border-stone-100 bg-stone-50 p-3">
-      <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-stone-400">
+      <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-stone-400">
         {label}
       </div>
       <div
@@ -552,26 +499,69 @@ function ReadonlyField({
   );
 }
 
+function SecurityRow({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle: string;
+  action: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
+      <div>
+        <div className="text-sm font-medium text-stone-900">{title}</div>
+        <div className="text-xs text-stone-400">{subtitle}</div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function AdminStatCard({
   icon,
   label,
   value,
+  gradient,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
+  gradient: string;
 }) {
   return (
-    <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-3 text-center">
-      <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-rose-100 text-rose-600">
+    <div className="group rounded-xl border border-stone-100 bg-stone-50 p-3 text-center transition-all hover:shadow-sm hover:-translate-y-0.5">
+      <div className={`mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-white shadow-sm`}>
         {icon}
       </div>
       <div className="mt-2 text-lg font-bold tracking-tight text-stone-900">
         {value.toLocaleString()}
       </div>
-      <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-stone-400">
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-stone-400">
         {label}
       </div>
+    </div>
+  );
+}
+
+function EndpointRow({
+  title,
+  path,
+}: {
+  title: string;
+  path: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50 p-4">
+      <div>
+        <div className="text-sm font-medium text-stone-900">{title}</div>
+        <div className="mt-1 font-mono text-xs text-stone-400">{path}</div>
+      </div>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Active
+      </span>
     </div>
   );
 }

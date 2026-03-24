@@ -1,13 +1,14 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  BarChart3,
   CheckCircle2,
   Clock3,
   Lock,
   MessageSquareText,
   ShieldCheck,
   UserPlus,
-  Zap
+  Zap,
 } from "lucide-react";
 import { redirect } from "next/navigation";
 
@@ -39,7 +40,6 @@ export default async function AnalyticsPage({
   const supabase = await createClient();
   const db = supabase as any;
 
-  // Check if admin
   const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = await db
     .from("profiles")
@@ -75,7 +75,6 @@ export default async function AnalyticsPage({
     messages: Array.isArray(conversation.messages) ? conversation.messages : [],
   }));
 
-  // Fetch leads to map session_id → visitor name/email
   const { data: leads } = await db
     .from("leads")
     .select("session_id, name, email")
@@ -83,7 +82,6 @@ export default async function AnalyticsPage({
 
   const totalLeads = leads?.length || 0;
 
-  // Build lookup: session_id → { name, email }
   const leadMap = new Map<string, { name: string | null; email: string }>();
   if (leads) {
     for (const lead of leads as LeadRecord[]) {
@@ -91,7 +89,6 @@ export default async function AnalyticsPage({
     }
   }
 
-  // Enrich conversations with visitor info
   const enrichedConvos = convos.map((conversation, index) => {
     const lead = leadMap.get(conversation.session_id);
     return {
@@ -108,12 +105,10 @@ export default async function AnalyticsPage({
     (acc, conversation) => acc + conversation.messages.length,
     0,
   );
-
   const totalTokens = convos.reduce(
     (acc, conversation) => acc + (conversation.estimated_tokens || 0),
     0,
   );
-
   const avgMessages =
     totalConversations > 0 ? (totalMessages / totalConversations).toFixed(1) : "0";
   const resolvedCount = convos.filter((conversation) => conversation.resolved).length;
@@ -123,21 +118,24 @@ export default async function AnalyticsPage({
       : 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-7xl space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-400">
-            Conversation Analytics
-          </p>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-stone-950">
-              {client.name} Analytics
-            </h1>
-            <p className="mt-2 text-sm text-stone-500">
-              Review conversation volume, deflection quality, and recent chat
-              activity for this client workspace.
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 shadow-lg shadow-blue-500/20">
+              <BarChart3 className="h-4 w-4 text-white" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
+              Analytics
             </p>
           </div>
+          <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+            {client.name}
+          </h1>
+          <p className="text-sm text-stone-500">
+            Conversation volume, deflection quality, and recent activity.
+          </p>
         </div>
         <Link
           href={`/clients/${client.id}`}
@@ -148,73 +146,87 @@ export default async function AnalyticsPage({
         </Link>
       </div>
 
-      <div className={`grid gap-4 md:grid-cols-2 ${isAdmin ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
-        <StatCard
-          title="Total Conversations"
+      {/* Stats */}
+      <div className={`grid gap-3 sm:grid-cols-2 ${isAdmin ? "xl:grid-cols-6" : "xl:grid-cols-5"}`}>
+        <AnalyticsStatCard
+          title="Conversations"
           value={String(totalConversations)}
-          description="Unique customer sessions"
-          icon={<MessageSquareText className="h-5 w-5 text-teal-700" />}
+          subtitle="Unique sessions"
+          icon={<MessageSquareText className="h-5 w-5" />}
+          gradient="from-blue-500 to-cyan-600"
+          shadowColor="shadow-blue-500/20"
         />
-        <StatCard
-          title="Total Messages"
+        <AnalyticsStatCard
+          title="Messages"
           value={String(totalMessages)}
-          description="Combined user and assistant messages"
-          icon={<Clock3 className="h-5 w-5 text-stone-700" />}
+          subtitle="User + assistant"
+          icon={<Clock3 className="h-5 w-5" />}
+          gradient="from-violet-500 to-purple-600"
+          shadowColor="shadow-violet-500/20"
         />
-        <StatCard
-          title="Avg. Messages / Chat"
+        <AnalyticsStatCard
+          title="Avg. per Chat"
           value={avgMessages}
-          description="Average interaction depth"
-          icon={<ShieldCheck className="h-5 w-5 text-emerald-700" />}
+          subtitle="Interaction depth"
+          icon={<ShieldCheck className="h-5 w-5" />}
+          gradient="from-emerald-500 to-teal-600"
+          shadowColor="shadow-emerald-500/20"
         />
-        <StatCard
-          title="Resolution Rate"
+        <AnalyticsStatCard
+          title="Resolution"
           value={`${resolutionRate}%`}
-          description="Chats marked as resolved"
-          icon={<CheckCircle2 className="h-5 w-5 text-teal-700" />}
+          subtitle="Chats resolved"
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          gradient="from-amber-500 to-orange-600"
+          shadowColor="shadow-amber-500/20"
         />
-        <StatCard
-          title="Leads Captured"
+        <AnalyticsStatCard
+          title="Leads"
           value={String(totalLeads)}
-          description="Emails collected via widget"
-          icon={<UserPlus className="h-5 w-5 text-blue-700" />}
+          subtitle="Emails captured"
+          icon={<UserPlus className="h-5 w-5" />}
+          gradient="from-pink-500 to-rose-600"
+          shadowColor="shadow-pink-500/20"
         />
         {isAdmin && (
-          <StatCard
-            title="Token Usage"
+          <AnalyticsStatCard
+            title="Tokens"
             value={totalTokens.toLocaleString()}
-            description="Estimated Llama 3.3 tokens"
-            icon={<Zap className="h-5 w-5 text-amber-500" />}
+            subtitle="Llama 3.3 est."
+            icon={<Zap className="h-5 w-5" />}
+            gradient="from-red-500 to-rose-600"
+            shadowColor="shadow-red-500/20"
           />
         )}
       </div>
 
-      <section className="rounded-[1.75rem] border border-stone-200 bg-white shadow-sm">
-        <div className="border-b border-stone-200 px-6 py-5">
-          <h2 className="text-xl font-semibold tracking-tight text-stone-950">
+      {/* Conversation History */}
+      <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+        <div className="border-b border-stone-100 px-6 py-5">
+          <h2 className="text-lg font-semibold tracking-tight text-stone-950">
             Recent Chat History
           </h2>
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-stone-500">
             {canViewConversations
-              ? "Click on any conversation to view the full chat transcript."
-              : "Upgrade to Pro or Business to unlock full conversation history."}
+              ? "Click on any conversation to view the full transcript."
+              : "Upgrade to Pro or Business to unlock conversation history."}
           </p>
         </div>
 
         {!canViewConversations ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-              <Lock className="h-7 w-7" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100">
+              <Lock className="h-7 w-7 text-amber-600" />
             </div>
             <h3 className="mt-5 text-lg font-semibold tracking-tight text-stone-950">
-              Conversation History is a Pro Feature
+              Pro Feature
             </h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-stone-500">
-              Your Starter plan includes summary analytics above. Upgrade to <strong>Pro</strong> or <strong>Business</strong> to access full chat transcripts, visitor details, and conversation search.
+              Your Starter plan includes summary analytics. Upgrade to <strong>Pro</strong> or <strong>Business</strong> for full transcripts and visitor details.
             </p>
             <Link
               href={`/clients/${client.id}/billing`}
-              className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-900 px-6 text-sm font-semibold text-white transition hover:bg-stone-800"
+              className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-6 text-sm font-semibold text-white shadow-lg shadow-stone-950/10 transition hover:bg-stone-800"
             >
               <Zap className="h-4 w-4" />
               Upgrade Plan
@@ -222,8 +234,8 @@ export default async function AnalyticsPage({
           </div>
         ) : enrichedConvos.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 text-stone-600">
-              <MessageSquareText className="h-7 w-7" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100">
+              <MessageSquareText className="h-7 w-7 text-stone-400" />
             </div>
             <h3 className="mt-5 text-lg font-semibold tracking-tight text-stone-950">
               No conversations yet
@@ -241,29 +253,37 @@ export default async function AnalyticsPage({
   );
 }
 
-function StatCard({
+function AnalyticsStatCard({
   title,
   value,
-  description,
+  subtitle,
   icon,
+  gradient,
+  shadowColor,
 }: {
   title: string;
   value: string;
-  description: string;
+  subtitle: string;
   icon: React.ReactNode;
+  gradient: string;
+  shadowColor: string;
 }) {
   return (
-    <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-stone-500">{title}</div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-stone-100">
+    <div className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            {title}
+          </p>
+          <p className="text-2xl font-bold tracking-tight text-stone-950">
+            {value}
+          </p>
+          <p className="text-xs text-stone-500">{subtitle}</p>
+        </div>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} text-white shadow-lg ${shadowColor}`}>
           {icon}
         </div>
       </div>
-      <div className="mt-5 text-3xl font-semibold tracking-tight text-stone-950">
-        {value}
-      </div>
-      <p className="mt-2 text-sm text-stone-500">{description}</p>
     </div>
   );
 }

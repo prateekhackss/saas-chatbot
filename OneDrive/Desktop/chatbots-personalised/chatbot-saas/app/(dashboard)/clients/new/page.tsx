@@ -8,16 +8,21 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Eye,
   Loader2,
+  Palette,
   Plus,
+  Rocket,
+  Settings2,
   Sparkles,
+  Type,
   X,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toast-provider";
 
 const DEFAULT_WELCOME_MESSAGE = "Hi there! How can I help you today?";
 const DEFAULT_FALLBACK_MESSAGE =
-  "I’m sorry, but I don’t have that information yet. Please contact our team for more help.";
+  "I'm sorry, but I don't have that information yet. Please contact our team for more help.";
 
 function slugify(value: string) {
   return value
@@ -97,41 +102,25 @@ export default function NewClientPage() {
 
     if (!trimmedName) {
       setError("Client name is required.");
-      pushToast({
-        title: "Missing client name",
-        description: "Add a client name before creating the workspace.",
-        variant: "error",
-      });
+      pushToast({ title: "Missing client name", description: "Add a client name before creating the workspace.", variant: "error" });
       return;
     }
 
     if (!trimmedBrandName) {
       setError("Brand name is required.");
-      pushToast({
-        title: "Missing brand name",
-        description: "Set the customer-facing brand name first.",
-        variant: "error",
-      });
+      pushToast({ title: "Missing brand name", description: "Set the customer-facing brand name first.", variant: "error" });
       return;
     }
 
     if (!trimmedSlug) {
       setError("Slug is required.");
-      pushToast({
-        title: "Missing URL slug",
-        description: "The widget needs a valid slug for its public URL.",
-        variant: "error",
-      });
+      pushToast({ title: "Missing URL slug", description: "The widget needs a valid slug for its public URL.", variant: "error" });
       return;
     }
 
     if (!trimmedWelcomeMessage || !trimmedTone || !trimmedFallbackMessage) {
       setError("Welcome message, tone, and fallback message are required.");
-      pushToast({
-        title: "Complete the bot behavior",
-        description: "Welcome message, tone, and fallback copy are all required.",
-        variant: "error",
-      });
+      pushToast({ title: "Complete the bot behavior", description: "Welcome message, tone, and fallback copy are all required.", variant: "error" });
       return;
     }
 
@@ -140,9 +129,7 @@ export default function NewClientPage() {
     try {
       const response = await fetch("/api/admin/clients", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: trimmedName,
           slug: trimmedSlug,
@@ -165,37 +152,21 @@ export default function NewClientPage() {
       if (!response.ok) {
         if (response.status === 409) {
           setError("That slug already exists. Please choose a different one.");
-          pushToast({
-            title: "Slug already exists",
-            description: "Choose a different public slug for this client widget.",
-            variant: "error",
-          });
+          pushToast({ title: "Slug already exists", description: "Choose a different public slug for this client widget.", variant: "error" });
         } else {
           setError(payload.error || "Failed to create client.");
-          pushToast({
-            title: "Client creation failed",
-            description: payload.error || "Please try again in a moment.",
-            variant: "error",
-          });
+          pushToast({ title: "Client creation failed", description: payload.error || "Please try again in a moment.", variant: "error" });
         }
         return;
       }
 
-      pushToast({
-        title: "Client created",
-        description: "Redirecting you to the new client workspace.",
-        variant: "success",
-      });
+      pushToast({ title: "Client created", description: "Redirecting you to the new client workspace.", variant: "success" });
       router.push(`/clients/${payload.id}`);
       router.refresh();
     } catch (submitError) {
       console.error(submitError);
       setError("Something went wrong while creating the client.");
-      pushToast({
-        title: "Client creation failed",
-        description: "Something went wrong while creating the client.",
-        variant: "error",
-      });
+      pushToast({ title: "Client creation failed", description: "Something went wrong while creating the client.", variant: "error" });
     } finally {
       setIsSubmitting(false);
     }
@@ -205,38 +176,33 @@ export default function NewClientPage() {
     try {
       await navigator.clipboard.writeText(embedCode);
       setCopied(true);
-      pushToast({
-        title: "Embed code copied",
-        description: "The script snippet is ready to paste into a client site.",
-        variant: "success",
-      });
+      pushToast({ title: "Embed code copied", description: "The script snippet is ready to paste into a client site.", variant: "success" });
       window.setTimeout(() => setCopied(false), 1800);
     } catch (copyError) {
       console.error(copyError);
-      pushToast({
-        title: "Copy failed",
-        description: "Could not copy the embed code from this browser.",
-        variant: "error",
-      });
+      pushToast({ title: "Copy failed", description: "Could not copy the embed code from this browser.", variant: "error" });
     }
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-stone-400">
-            Client Onboarding
-          </p>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-stone-950">
-              Onboard New Client
-            </h1>
-            <p className="mt-2 text-sm text-stone-500">
-              Configure branding, bot behavior, and suggested questions before
-              you deploy the widget.
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
+              <Rocket className="h-4 w-4 text-white" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
+              Client Onboarding
             </p>
           </div>
+          <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+            New Chatbot
+          </h1>
+          <p className="text-sm text-stone-500">
+            Configure branding, behavior, and suggested questions before deploying.
+          </p>
         </div>
         <Link
           href="/clients"
@@ -247,33 +213,34 @@ export default function NewClientPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.45fr_0.9fr]">
-        <div className="space-y-6">
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Basic Info"
-              description="Set the internal client record and the public widget slug."
-            />
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+        {/* Left Column — Form Sections */}
+        <div className="space-y-5">
+          {/* Basic Info */}
+          <FormSection
+            icon={<Type className="h-4 w-4" />}
+            title="Basic Info"
+            description="Internal record and public widget slug"
+            gradient="from-violet-500 to-purple-600"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               <Field label="Client Name" required>
                 <input
                   value={name}
-                  onChange={(event) => setName(event.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Sarah's Fitness Coaching"
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  className={inputClass}
                 />
               </Field>
-
               <Field label="Brand Name" required>
                 <input
                   value={brandName}
-                  onChange={(event) => setBrandName(event.target.value)}
+                  onChange={(e) => setBrandName(e.target.value)}
                   placeholder="What customers should see"
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  className={inputClass}
                 />
               </Field>
             </div>
-
-            <div className="mt-5">
+            <div className="mt-4">
               <Field
                 label="URL Slug"
                 hint="Auto-generated from the brand name until you edit it manually."
@@ -281,144 +248,135 @@ export default function NewClientPage() {
               >
                 <input
                   value={slug}
-                  onChange={(event) => {
+                  onChange={(e) => {
                     setSlugManuallyEdited(true);
-                    setSlug(slugify(event.target.value));
+                    setSlug(slugify(e.target.value));
                   }}
                   placeholder="sarahs-fitness-coaching"
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  className={inputClass}
                 />
               </Field>
             </div>
-          </section>
+          </FormSection>
 
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Branding"
-              description="Tune the widget look and first-impression copy."
-            />
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+          {/* Branding */}
+          <FormSection
+            icon={<Palette className="h-4 w-4" />}
+            title="Branding"
+            description="Widget look and first-impression copy"
+            gradient="from-pink-500 to-rose-600"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               <Field label="Primary Color" required>
                 <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                   <input
                     type="color"
                     value={primaryColor}
-                    onChange={(event) => setPrimaryColor(event.target.value)}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
                     className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                   />
                   <span
                     className="h-4 w-4 rounded-full border border-stone-200"
                     style={{ backgroundColor: primaryColor }}
                   />
-                  <span className="text-sm font-medium text-stone-600">
-                    {primaryColor}
-                  </span>
+                  <span className="text-sm font-medium text-stone-600">{primaryColor}</span>
                 </div>
               </Field>
-
               <Field label="Text Color" required>
                 <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
                   <input
                     type="color"
                     value={textColor}
-                    onChange={(event) => setTextColor(event.target.value)}
+                    onChange={(e) => setTextColor(e.target.value)}
                     className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
                   />
                   <span
                     className="h-4 w-4 rounded-full border border-stone-200"
                     style={{ backgroundColor: textColor }}
                   />
-                  <span className="text-sm font-medium text-stone-600">
-                    {textColor}
-                  </span>
+                  <span className="text-sm font-medium text-stone-600">{textColor}</span>
                 </div>
               </Field>
             </div>
-
-            <div className="mt-5 space-y-5">
+            <div className="mt-4 space-y-4">
               <Field label="Welcome Message" required>
                 <input
                   value={welcomeMessage}
-                  onChange={(event) => setWelcomeMessage(event.target.value)}
+                  onChange={(e) => setWelcomeMessage(e.target.value)}
                   placeholder="Hi there! How can I help you today?"
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  className={inputClass}
                 />
               </Field>
-
               <Field label="Logo URL" hint="Optional">
                 <input
                   value={logoUrl}
-                  onChange={(event) => setLogoUrl(event.target.value)}
+                  onChange={(e) => setLogoUrl(e.target.value)}
                   placeholder="https://example.com/logo.png"
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  className={inputClass}
                 />
               </Field>
             </div>
-          </section>
+          </FormSection>
 
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Behavior"
-              description="Define how the assistant greets users and what it does when context is missing."
-            />
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
+          {/* Behavior */}
+          <FormSection
+            icon={<Settings2 className="h-4 w-4" />}
+            title="Behavior"
+            description="How the assistant greets users and handles missing context"
+            gradient="from-blue-500 to-cyan-600"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               <Field label="Widget Position" required>
                 <select
                   value={position}
-                  onChange={(event) =>
-                    setPosition(event.target.value as "bottom-right" | "bottom-left")
-                  }
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  onChange={(e) => setPosition(e.target.value as "bottom-right" | "bottom-left")}
+                  className={inputClass}
                 >
                   <option value="bottom-right">Bottom Right</option>
                   <option value="bottom-left">Bottom Left</option>
                 </select>
               </Field>
-
               <Field label="Tone" required>
                 <input
                   value={tone}
-                  onChange={(event) => setTone(event.target.value)}
-                  placeholder='Examples: "friendly and casual", "professional and concise"'
-                  className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                  onChange={(e) => setTone(e.target.value)}
+                  placeholder='"friendly and casual", "professional"'
+                  className={inputClass}
                 />
               </Field>
             </div>
-
-            <div className="mt-5">
-              <Field
-                label="Fallback Message"
-                hint="Shown only when the bot does not know the answer."
-                required
-              >
+            <div className="mt-4">
+              <Field label="Fallback Message" hint="Shown when bot doesn't know the answer." required>
                 <textarea
                   value={fallbackMessage}
-                  onChange={(event) => setFallbackMessage(event.target.value)}
-                  rows={4}
+                  onChange={(e) => setFallbackMessage(e.target.value)}
+                  rows={3}
                   className="w-full rounded-2xl border border-stone-200 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
                 />
               </Field>
             </div>
-          </section>
+          </FormSection>
 
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Suggested Questions"
-              description="Preload common prompts to help users start a conversation quickly."
-            />
-            <div className="mt-6 space-y-3">
+          {/* Suggested Questions */}
+          <FormSection
+            icon={<Sparkles className="h-4 w-4" />}
+            title="Suggested Questions"
+            description="Help users start a conversation quickly"
+            gradient="from-amber-500 to-orange-600"
+          >
+            <div className="space-y-2.5">
               {suggestedQuestions.map((question, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div key={index} className="flex items-center gap-2">
                   <input
                     value={question}
-                    onChange={(event) => updateQuestion(index, event.target.value)}
+                    onChange={(e) => updateQuestion(index, e.target.value)}
                     placeholder={`Suggested question ${index + 1}`}
-                    className="h-12 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60"
+                    className={inputClass}
                   />
                   <button
                     type="button"
                     onClick={() => removeQuestion(index)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                     aria-label={`Remove question ${index + 1}`}
                   >
                     <X className="h-4 w-4" />
@@ -426,142 +384,158 @@ export default function NewClientPage() {
                 </div>
               ))}
             </div>
-
             <button
               type="button"
               onClick={addQuestion}
-              className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-stone-50 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:bg-white hover:text-stone-950"
+              className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-dashed border-stone-300 bg-stone-50/50 px-4 text-sm font-medium text-stone-500 transition hover:border-stone-400 hover:bg-white hover:text-stone-700"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
               Add Question
             </button>
-          </section>
+          </FormSection>
         </div>
 
-        <div className="space-y-6">
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <SectionHeader
-              title="Live Snapshot"
-              description="Preview the key widget choices before creating the client."
-            />
-            <div className="mt-6 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5">
-              <div
-                className="rounded-[1.25rem] px-4 py-4 text-sm shadow-sm"
-                style={{ backgroundColor: primaryColor, color: textColor }}
-              >
-                <div className="text-xs font-semibold uppercase tracking-[0.24em] opacity-75">
-                  {brandName || "Brand Name"}
+        {/* Right Column — Preview + Actions */}
+        <div className="space-y-5">
+          {/* Live Preview */}
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="flex items-center gap-2 border-b border-stone-100 bg-stone-50/60 px-5 py-3">
+              <Eye className="h-4 w-4 text-stone-400" />
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Live Preview</span>
+            </div>
+            <div className="p-5">
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                <div
+                  className="rounded-xl px-4 py-4 text-sm shadow-sm"
+                  style={{ backgroundColor: primaryColor, color: textColor }}
+                >
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-75">
+                    {brandName || "Brand Name"}
+                  </div>
+                  <p className="mt-3 text-sm leading-relaxed">
+                    {welcomeMessage || DEFAULT_WELCOME_MESSAGE}
+                  </p>
                 </div>
-                <p className="mt-3 text-sm leading-6">
-                  {welcomeMessage || DEFAULT_WELCOME_MESSAGE}
-                </p>
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <PreviewStat label="Position" value={position} />
-                <PreviewStat
-                  label="Questions"
-                  value={String(
-                    suggestedQuestions.map((question) => question.trim()).filter(Boolean)
-                      .length,
-                  )}
-                />
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <PreviewStat label="Position" value={position} />
+                  <PreviewStat
+                    label="Questions"
+                    value={String(suggestedQuestions.filter(q => q.trim()).length)}
+                  />
+                </div>
               </div>
             </div>
-          </section>
+          </div>
 
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between gap-4">
-              <SectionHeader
-                title="Embed Code Preview"
-                description="This is the script snippet clients will paste into their site."
-              />
+          {/* Embed Code */}
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-stone-100 bg-stone-50/60 px-5 py-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Embed Code</span>
               <button
                 type="button"
                 onClick={handleCopyEmbedCode}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600 transition hover:border-stone-300 hover:text-stone-900"
               >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <pre className="mt-6 overflow-x-auto rounded-[1.25rem] bg-stone-950 p-4 text-xs leading-6 text-stone-100">
-              {embedCode}
-            </pre>
-          </section>
+            <div className="p-5">
+              <pre className="overflow-x-auto rounded-xl bg-stone-950 p-4 text-xs leading-6 text-stone-300">
+                {embedCode}
+              </pre>
+            </div>
+          </div>
 
+          {/* Error */}
           {error && (
-            <div
-              className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
-            >
-              <div className="flex items-start gap-3">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+              <div className="flex items-start gap-2">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>{error}</p>
               </div>
             </div>
           )}
 
-          <section className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
-                <Sparkles className="h-5 w-5" />
+          {/* Submit */}
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+            <div className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
+                  <Rocket className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-stone-950">
+                    Ready to deploy
+                  </h2>
+                  <p className="mt-1 text-xs leading-relaxed text-stone-500">
+                    Once created, you&apos;ll be redirected to the client workspace
+                    to manage documents, analytics, and the live widget.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-base font-semibold tracking-tight text-stone-950">
-                  Ready to deploy
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-stone-500">
-                  Once created, you&apos;ll be redirected to the client workspace
-                  where you can manage documents, analytics, and the live widget
-                  preview.
-                </p>
+
+              <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/10 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Client"
+                  )}
+                </button>
+                <Link
+                  href="/clients"
+                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
+                >
+                  Cancel
+                </Link>
               </div>
             </div>
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/15 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating client...
-                  </>
-                ) : (
-                  "Create Client"
-                )}
-              </button>
-
-              <Link
-                href="/clients"
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
-              >
-                Cancel
-              </Link>
-            </div>
-          </section>
+          </div>
         </div>
       </form>
     </div>
   );
 }
 
-function SectionHeader({
+/* ─── Sub-components ─── */
+
+const inputClass =
+  "h-11 w-full rounded-2xl border border-stone-200 px-4 text-sm text-stone-900 outline-none transition focus:border-stone-400 focus:ring-4 focus:ring-stone-200/60";
+
+function FormSection({
+  icon,
   title,
   description,
+  gradient,
+  children,
 }: {
+  icon: React.ReactNode;
   title: string;
   description: string;
+  gradient: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div>
-      <h2 className="text-lg font-semibold tracking-tight text-stone-950">
-        {title}
-      </h2>
-      <p className="mt-1 text-sm text-stone-500">{description}</p>
-    </div>
+    <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2.5 border-b border-stone-100 bg-stone-50/60 px-5 py-3">
+        <div className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br ${gradient} text-white`}>
+          {icon}
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold text-stone-900">{title}</h2>
+          <p className="text-[11px] text-stone-400">{description}</p>
+        </div>
+      </div>
+      <div className="p-5">{children}</div>
+    </section>
   );
 }
 
@@ -577,30 +551,22 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block space-y-2">
-      <span className="flex items-center gap-2 text-sm font-medium text-stone-700">
+    <label className="block space-y-1.5">
+      <span className="flex items-center gap-1.5 text-xs font-semibold text-stone-600">
         {label}
         {required ? <span className="text-rose-500">*</span> : null}
       </span>
       {children}
-      {hint ? <span className="block text-xs text-stone-500">{hint}</span> : null}
+      {hint ? <span className="block text-[11px] text-stone-400">{hint}</span> : null}
     </label>
   );
 }
 
-function PreviewStat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function PreviewStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3">
-      <div className="text-xs font-medium uppercase tracking-[0.2em] text-stone-400">
-        {label}
-      </div>
-      <div className="mt-2 text-sm font-semibold text-stone-900">{value}</div>
+    <div className="rounded-xl border border-stone-100 bg-white px-3 py-2.5">
+      <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400">{label}</div>
+      <div className="mt-1 text-sm font-semibold text-stone-900">{value}</div>
     </div>
   );
 }
