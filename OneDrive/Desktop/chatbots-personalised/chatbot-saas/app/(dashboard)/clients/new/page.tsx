@@ -214,7 +214,7 @@ export default function NewClientPage() {
 
       <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.45fr_0.9fr]">
         {/* Left Column — Form Sections */}
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           {/* Basic Info */}
           <FormSection
             icon={<Type className="h-4 w-4" />}
@@ -268,33 +268,33 @@ export default function NewClientPage() {
           >
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Primary Color" required>
-                <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
+                <div className="flex items-center gap-2 rounded-2xl border border-stone-200 px-3 sm:gap-3 sm:px-4">
                   <input
                     type="color"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
+                    className="h-11 w-10 shrink-0 cursor-pointer border-0 bg-transparent p-0 sm:h-12 sm:w-14"
                   />
                   <span
-                    className="h-4 w-4 rounded-full border border-stone-200"
+                    className="h-4 w-4 shrink-0 rounded-full border border-stone-200"
                     style={{ backgroundColor: primaryColor }}
                   />
-                  <span className="text-sm font-medium text-stone-600">{primaryColor}</span>
+                  <span className="truncate text-sm font-medium text-stone-600">{primaryColor}</span>
                 </div>
               </Field>
               <Field label="Text Color" required>
-                <div className="flex items-center gap-3 rounded-2xl border border-stone-200 px-4">
+                <div className="flex items-center gap-2 rounded-2xl border border-stone-200 px-3 sm:gap-3 sm:px-4">
                   <input
                     type="color"
                     value={textColor}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="h-12 w-14 cursor-pointer border-0 bg-transparent p-0"
+                    className="h-11 w-10 shrink-0 cursor-pointer border-0 bg-transparent p-0 sm:h-12 sm:w-14"
                   />
                   <span
-                    className="h-4 w-4 rounded-full border border-stone-200"
+                    className="h-4 w-4 shrink-0 rounded-full border border-stone-200"
                     style={{ backgroundColor: textColor }}
                   />
-                  <span className="text-sm font-medium text-stone-600">{textColor}</span>
+                  <span className="truncate text-sm font-medium text-stone-600">{textColor}</span>
                 </div>
               </Field>
             </div>
@@ -366,11 +366,11 @@ export default function NewClientPage() {
           >
             <div className="space-y-2.5">
               {suggestedQuestions.map((question, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-1.5 sm:gap-2">
                   <input
                     value={question}
                     onChange={(e) => updateQuestion(index, e.target.value)}
-                    placeholder={`Suggested question ${index + 1}`}
+                    placeholder={`Question ${index + 1}`}
                     className={inputClass}
                   />
                   <button
@@ -396,15 +396,15 @@ export default function NewClientPage() {
         </div>
 
         {/* Right Column — Preview + Actions */}
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           {/* Live Preview */}
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-stone-100 bg-stone-50/60 px-5 py-3">
               <Eye className="h-4 w-4 text-stone-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Live Preview</span>
             </div>
-            <div className="p-5">
-              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4">
+            <div className="p-4 sm:p-5">
+              <div className="rounded-2xl border border-stone-100 bg-stone-50 p-3 sm:p-4">
                 <div
                   className="rounded-xl px-4 py-4 text-sm shadow-sm"
                   style={{ backgroundColor: primaryColor, color: textColor }}
@@ -440,9 +440,9 @@ export default function NewClientPage() {
                 {copied ? "Copied!" : "Copy"}
               </button>
             </div>
-            <div className="p-5">
-              <pre className="overflow-x-auto rounded-xl bg-stone-950 p-4 text-xs leading-6 text-stone-300">
-                {embedCode}
+            <div className="p-4 sm:p-5">
+              <pre className="overflow-x-auto rounded-xl bg-stone-950 p-3 text-[11px] leading-6 text-stone-300 sm:p-4 sm:text-xs">
+                <code className="break-all sm:break-normal">{embedCode}</code>
               </pre>
             </div>
           </div>
@@ -459,12 +459,12 @@ export default function NewClientPage() {
 
           {/* Submit */}
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <div className="flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
                   <Rocket className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2 className="text-sm font-semibold text-stone-950">
                     Ready to deploy
                   </h2>
@@ -534,7 +534,7 @@ function FormSection({
           <p className="text-[11px] text-stone-400">{description}</p>
         </div>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }
