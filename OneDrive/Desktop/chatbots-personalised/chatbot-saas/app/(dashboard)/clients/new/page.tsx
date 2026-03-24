@@ -185,19 +185,19 @@ export default function NewClientPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6 overflow-hidden">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-1">
+        <div className="min-w-0 space-y-1">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
               <Rocket className="h-4 w-4 text-white" />
             </div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400">
               Client Onboarding
             </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-stone-950">
+          <h1 className="text-2xl font-bold tracking-tight text-stone-950 sm:text-3xl">
             New Chatbot
           </h1>
           <p className="text-sm text-stone-500">
@@ -206,15 +206,15 @@ export default function NewClientPage() {
         </div>
         <Link
           href="/clients"
-          className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
+          className="hidden h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-4 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950 sm:inline-flex"
         >
           Cancel
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[1.45fr_0.9fr]">
+      <form onSubmit={handleSubmit} className="grid min-w-0 gap-6 lg:grid-cols-[1.45fr_0.9fr]">
         {/* Left Column — Form Sections */}
-        <div className="min-w-0 space-y-5">
+        <div className="min-w-0 space-y-5 overflow-hidden">
           {/* Basic Info */}
           <FormSection
             icon={<Type className="h-4 w-4" />}
@@ -396,7 +396,7 @@ export default function NewClientPage() {
         </div>
 
         {/* Right Column — Preview + Actions */}
-        <div className="min-w-0 space-y-5">
+        <div className="min-w-0 space-y-5 overflow-hidden">
           {/* Live Preview */}
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-stone-100 bg-stone-50/60 px-5 py-3">
@@ -441,8 +441,8 @@ export default function NewClientPage() {
               </button>
             </div>
             <div className="p-4 sm:p-5">
-              <pre className="overflow-x-auto rounded-xl bg-stone-950 p-3 text-[11px] leading-6 text-stone-300 sm:p-4 sm:text-xs">
-                <code className="break-all sm:break-normal">{embedCode}</code>
+              <pre className="overflow-x-auto rounded-xl bg-stone-950 p-3 text-[10px] leading-6 text-stone-300 sm:p-4 sm:text-xs">
+                <code className="break-all">{embedCode}</code>
               </pre>
             </div>
           </div>
@@ -464,13 +464,12 @@ export default function NewClientPage() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
                   <Rocket className="h-5 w-5" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-sm font-semibold text-stone-950">
                     Ready to deploy
                   </h2>
                   <p className="mt-1 text-xs leading-relaxed text-stone-500">
-                    Once created, you&apos;ll be redirected to the client workspace
-                    to manage documents, analytics, and the live widget.
+                    Once created, you&apos;ll be redirected to the client workspace to manage documents, analytics, and the live widget.
                   </p>
                 </div>
               </div>
@@ -479,7 +478,7 @@ export default function NewClientPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/10 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-stone-950 px-5 text-sm font-semibold text-white shadow-lg shadow-stone-950/10 transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-auto"
                 >
                   {isSubmitting ? (
                     <>
@@ -492,7 +491,7 @@ export default function NewClientPage() {
                 </button>
                 <Link
                   href="/clients"
-                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-2xl border border-stone-200 bg-white px-5 text-sm font-medium text-stone-700 transition hover:border-stone-300 hover:text-stone-950 sm:w-auto"
                 >
                   Cancel
                 </Link>
