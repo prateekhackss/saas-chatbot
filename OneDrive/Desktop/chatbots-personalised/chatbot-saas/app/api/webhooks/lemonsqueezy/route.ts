@@ -12,6 +12,22 @@ function verifyWebhookSignature(rawBody: string, signature: string, secret: stri
   return crypto.timingSafeEqual(digestBuf, sigBuf);
 }
 
+// Derive plan tier from plan_id string (e.g. "pro_monthly" → "pro")
+function derivePlanTier(planId: string): string {
+  if (planId.includes("business")) return "business";
+  if (planId.includes("starter")) return "starter";
+  if (planId.includes("pro")) return "pro";
+  return ""; // unknown — caller must handle
+}
+
+// Map LemonSqueezy subscription status → app status
+function toAppStatus(lsStatus: string): string {
+  if (lsStatus === "active" || lsStatus === "on_trial") return "active";
+  if (lsStatus === "past_due" || lsStatus === "unpaid") return "past_due";
+  if (lsStatus === "cancelled" || lsStatus === "expired" || lsStatus === "paused") return "canceled";
+  return lsStatus;
+}
+
 // Helper: update user-level subscription on profiles table
 async function updateUserSubscription(
   supabaseAdmin: any,
@@ -21,32 +37,123 @@ async function updateUserSubscription(
   subscriptionId: string,
   periodEnd: string | null
 ) {
-  const appStatus =
-    status === "on_trial" ? "active" :
-    status === "active" ? "active" :
-    status === "past_due" || status === "unpaid" ? "past_due" :
-    status === "cancelled" || status === "expired" || status === "paused" ? "canceled" :
-    status;
+  const appStatus = toAppStatus(status);
+
+  // Only update plan_tier if we actually have one (don't overwrite with empty)
+  const updatePayload: any = {
+    subscription_status: appStatus,
+    subscription_id: subscriptionId,
+    subscription_current_period_end: periodEnd,
+    updated_at: new Date().toISOString(),
+  };
+  if (planTier) {
+    updatePayload.plan_tier = planTier;
+  }
 
   await supabaseAdmin
     .from("profiles")
-    .update({
-      subscription_status: appStatus,
-      plan_tier: planTier,
-      subscription_id: subscriptionId,
-      subscription_current_period_end: periodEnd,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", userId);
 
   // Sync all user's clients to match the user's plan tier
+  const clientUpdate: any = { subscription_status: appStatus };
+  if (planTier) {
+    clientUpdate.plan_tier = planTier;
+  }
   await supabaseAdmin
     .from("clients")
-    .update({
-      plan_tier: planTier,
-      subscription_status: appStatus,
-    })
+    .update(clientUpdate)
     .eq("user_id", userId);
+}
+
+// Resolve the plan_tier for non-creation events by looking up the DB
+// LemonSqueezy does NOT echo custom_data on update/cancel/payment events
+async function resolveExistingPlanTier(
+  supabaseAdmin: any,
+  lemonSubscriptionId: string,
+  userId: string | undefined
+): Promise<string> {
+  // Try 1: Look up from subscriptions table (has plan_id from creation)
+  const { data: subRecord } = await supabaseAdmin
+    .from("subscriptions")
+    .select("plan_id, client_id")
+    .eq("lemon_subscription_id", lemonSubscriptionId)
+    .maybeSingle();
+
+  if (subRecord?.plan_id) {
+    const tier = derivePlanTier(subRecord.plan_id);
+    if (tier) return tier;
+  }
+
+  // Try 2: Look up from user's profile (already stored from creation event)
+  if (userId) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("plan_tier")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (profile?.plan_tier && profile.plan_tier !== "starter") {
+      return profile.plan_tier;
+    }
+  }
+
+  // Try 3: Look up via client linked to subscription
+  if (subRecord?.client_id) {
+    const { data: client } = await supabaseAdmin
+      .from("clients")
+      .select("plan_tier, user_id")
+      .eq("id", subRecord.client_id)
+      .maybeSingle();
+
+    if (client?.plan_tier) return client.plan_tier;
+
+    // Also try the user profile via client's user_id
+    if (client?.user_id) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("plan_tier")
+        .eq("id", client.user_id)
+        .maybeSingle();
+      if (profile?.plan_tier) return profile.plan_tier;
+    }
+  }
+
+  return ""; // couldn't determine — don't overwrite
+}
+
+// Resolve user_id when not in custom_data (for non-creation events)
+async function resolveUserId(
+  supabaseAdmin: any,
+  userId: string | undefined,
+  lemonSubscriptionId: string
+): Promise<string | null> {
+  if (userId) return userId;
+
+  // Look up via subscription → client → user_id
+  const { data: subRecord } = await supabaseAdmin
+    .from("subscriptions")
+    .select("client_id")
+    .eq("lemon_subscription_id", lemonSubscriptionId)
+    .maybeSingle();
+
+  if (subRecord?.client_id) {
+    const { data: client } = await supabaseAdmin
+      .from("clients")
+      .select("user_id")
+      .eq("id", subRecord.client_id)
+      .maybeSingle();
+    if (client?.user_id) return client.user_id;
+  }
+
+  // Look up from profiles by subscription_id
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("subscription_id", lemonSubscriptionId)
+    .maybeSingle();
+
+  return profile?.id || null;
 }
 
 export async function POST(req: NextRequest) {
@@ -89,18 +196,18 @@ export async function POST(req: NextRequest) {
     const subscriptionData = event.data?.attributes;
     const lemonSubscriptionId = String(event.data?.id || "");
 
-    // Extract custom data passed during checkout
+    // Extract custom data (only reliably present on subscription_created)
     const clientId = customData?.client_id;
     const userId = customData?.user_id;
     const planId = customData?.plan_id || "";
 
-    // Determine plan tier from plan_id
-    let plan_tier = "pro";
-    if (planId.includes("business")) plan_tier = "business";
-    if (planId.includes("starter")) plan_tier = "starter";
-
     switch (eventName) {
+      // ─── SUBSCRIPTION CREATED ─────────────────────────────────────
+      // This is the ONLY event where custom_data is reliably present.
+      // We derive plan_tier from plan_id and store it everywhere.
       case "subscription_created": {
+        const plan_tier = derivePlanTier(planId) || "pro"; // fallback for safety
+
         // Client-level subscription record (only if clientId exists)
         if (clientId) {
           const { error: subError } = await supabaseAdmin
@@ -133,7 +240,7 @@ export async function POST(req: NextRequest) {
             .eq("id", clientId);
         }
 
-        // ALWAYS update USER-LEVEL subscription (this is the source of truth for paywalls)
+        // ALWAYS update USER-LEVEL subscription (source of truth for paywalls)
         if (userId) {
           await updateUserSubscription(
             supabaseAdmin,
@@ -166,83 +273,63 @@ export async function POST(req: NextRequest) {
         break;
       }
 
+      // ─── SUBSCRIPTION UPDATED ─────────────────────────────────────
+      // custom_data is NOT present — must look up plan_tier from DB
       case "subscription_updated": {
+        const lsStatus = subscriptionData?.status || "active";
+        const appStatus = toAppStatus(lsStatus);
+
+        // Resolve plan_tier from DB (don't re-derive from missing custom_data)
+        const plan_tier = derivePlanTier(planId) || await resolveExistingPlanTier(supabaseAdmin, lemonSubscriptionId, userId);
+        const resolvedUserId = await resolveUserId(supabaseAdmin, userId, lemonSubscriptionId);
+
+        // Update subscription record if it exists
+        await supabaseAdmin
+          .from("subscriptions")
+          .update({
+            status: lsStatus,
+            current_period_end: subscriptionData?.renews_at || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("lemon_subscription_id", lemonSubscriptionId);
+
+        // Update client if linked
         const { data: subRecord } = await supabaseAdmin
           .from("subscriptions")
           .select("client_id")
           .eq("lemon_subscription_id", lemonSubscriptionId)
           .maybeSingle();
 
-        const lsStatus = subscriptionData?.status;
-        let appStatus = "active";
-        if (lsStatus === "active" || lsStatus === "on_trial") {
-          appStatus = "active";
-        } else if (lsStatus === "past_due") {
-          appStatus = "past_due";
-        } else if (lsStatus === "cancelled" || lsStatus === "expired") {
-          appStatus = "canceled";
-        } else if (lsStatus === "paused") {
-          appStatus = "canceled";
-        } else if (lsStatus === "unpaid") {
-          appStatus = "past_due";
-        }
-
-        // Update subscription record if it exists
-        await supabaseAdmin
-          .from("subscriptions")
-          .update({
-            status: lsStatus || "active",
-            current_period_end: subscriptionData?.renews_at || null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("lemon_subscription_id", lemonSubscriptionId);
-
         if (subRecord?.client_id) {
-          // Update client
+          const clientUpdate: any = { subscription_status: appStatus };
+          if (plan_tier) clientUpdate.plan_tier = plan_tier;
           await supabaseAdmin
             .from("clients")
-            .update({ subscription_status: appStatus })
+            .update(clientUpdate)
             .eq("id", subRecord.client_id);
+        }
 
-          // Update USER-LEVEL subscription via client
-          const { data: clientData } = await supabaseAdmin
-            .from("clients")
-            .select("user_id")
-            .eq("id", subRecord.client_id)
-            .single();
-          if (clientData?.user_id) {
-            await updateUserSubscription(
-              supabaseAdmin,
-              userId || clientData.user_id,
-              lsStatus || "active",
-              plan_tier,
-              lemonSubscriptionId,
-              subscriptionData?.renews_at || null
-            );
-          }
-        } else if (userId) {
-          // No client record — update user-level subscription directly
+        // Update user-level subscription
+        if (resolvedUserId) {
           await updateUserSubscription(
             supabaseAdmin,
-            userId,
-            lsStatus || "active",
+            resolvedUserId,
+            lsStatus,
             plan_tier,
             lemonSubscriptionId,
             subscriptionData?.renews_at || null
           );
         }
 
-        console.log("subscription_updated processed:", { userId, clientId: subRecord?.client_id, appStatus });
+        console.log("subscription_updated processed:", { resolvedUserId, plan_tier, appStatus });
         break;
       }
 
+      // ─── SUBSCRIPTION CANCELLED / EXPIRED ─────────────────────────
+      // Only update status to canceled — preserve plan_tier for grace period
       case "subscription_cancelled":
       case "subscription_expired": {
-        const { data: cancelledSub } = await supabaseAdmin
-          .from("subscriptions")
-          .select("client_id")
-          .eq("lemon_subscription_id", lemonSubscriptionId)
-          .single();
+        const resolvedUserId = await resolveUserId(supabaseAdmin, userId, lemonSubscriptionId);
 
         await supabaseAdmin
           .from("subscriptions")
@@ -252,38 +339,40 @@ export async function POST(req: NextRequest) {
           })
           .eq("lemon_subscription_id", lemonSubscriptionId);
 
-        if (cancelledSub) {
+        const { data: cancelledSub } = await supabaseAdmin
+          .from("subscriptions")
+          .select("client_id")
+          .eq("lemon_subscription_id", lemonSubscriptionId)
+          .maybeSingle();
+
+        if (cancelledSub?.client_id) {
           await supabaseAdmin
             .from("clients")
             .update({ subscription_status: "canceled" })
             .eq("id", cancelledSub.client_id);
-
-          // Update USER-LEVEL subscription
-          const { data: clientData } = await supabaseAdmin
-            .from("clients")
-            .select("user_id")
-            .eq("id", cancelledSub.client_id)
-            .single();
-          if (clientData?.user_id) {
-            await updateUserSubscription(
-              supabaseAdmin,
-              clientData.user_id,
-              "cancelled",
-              plan_tier,
-              lemonSubscriptionId,
-              null
-            );
-          }
         }
+
+        // Update user status to canceled but DON'T change plan_tier
+        // (preserves "pro"/"business" so they see what they had during grace period)
+        if (resolvedUserId) {
+          await updateUserSubscription(
+            supabaseAdmin,
+            resolvedUserId,
+            "cancelled",
+            "", // empty = don't overwrite plan_tier
+            lemonSubscriptionId,
+            null
+          );
+        }
+
+        console.log("subscription_cancelled processed:", { resolvedUserId });
         break;
       }
 
+      // ─── PAYMENT SUCCESS ──────────────────────────────────────────
       case "subscription_payment_success": {
-        const { data: paidSub } = await supabaseAdmin
-          .from("subscriptions")
-          .select("client_id")
-          .eq("lemon_subscription_id", lemonSubscriptionId)
-          .single();
+        const resolvedUserId = await resolveUserId(supabaseAdmin, userId, lemonSubscriptionId);
+        const plan_tier = derivePlanTier(planId) || await resolveExistingPlanTier(supabaseAdmin, lemonSubscriptionId, resolvedUserId || undefined);
 
         await supabaseAdmin
           .from("subscriptions")
@@ -294,66 +383,70 @@ export async function POST(req: NextRequest) {
           })
           .eq("lemon_subscription_id", lemonSubscriptionId);
 
-        if (paidSub) {
+        const { data: paidSub } = await supabaseAdmin
+          .from("subscriptions")
+          .select("client_id")
+          .eq("lemon_subscription_id", lemonSubscriptionId)
+          .maybeSingle();
+
+        if (paidSub?.client_id) {
+          const clientUpdate: any = {
+            subscription_status: "active",
+            messages_this_month: 0,
+          };
+          if (plan_tier) clientUpdate.plan_tier = plan_tier;
           await supabaseAdmin
             .from("clients")
-            .update({
-              subscription_status: "active",
-              messages_this_month: 0,
-            })
+            .update(clientUpdate)
             .eq("id", paidSub.client_id);
-
-          // Update USER-LEVEL subscription
-          const { data: clientData } = await supabaseAdmin
-            .from("clients")
-            .select("user_id")
-            .eq("id", paidSub.client_id)
-            .single();
-          if (clientData?.user_id) {
-            await updateUserSubscription(
-              supabaseAdmin,
-              clientData.user_id,
-              "active",
-              plan_tier,
-              lemonSubscriptionId,
-              subscriptionData?.renews_at || null
-            );
-          }
         }
+
+        if (resolvedUserId) {
+          await updateUserSubscription(
+            supabaseAdmin,
+            resolvedUserId,
+            "active",
+            plan_tier,
+            lemonSubscriptionId,
+            subscriptionData?.renews_at || null
+          );
+        }
+
+        console.log("subscription_payment_success processed:", { resolvedUserId, plan_tier });
         break;
       }
 
+      // ─── PAYMENT FAILED ───────────────────────────────────────────
       case "subscription_payment_failed": {
         console.warn("Payment failed for LemonSqueezy subscription:", lemonSubscriptionId);
+        const resolvedUserId = await resolveUserId(supabaseAdmin, userId, lemonSubscriptionId);
+
         const { data: failedSub } = await supabaseAdmin
           .from("subscriptions")
           .select("client_id")
           .eq("lemon_subscription_id", lemonSubscriptionId)
-          .single();
+          .maybeSingle();
 
-        if (failedSub) {
+        if (failedSub?.client_id) {
           await supabaseAdmin
             .from("clients")
             .update({ subscription_status: "past_due" })
             .eq("id", failedSub.client_id);
-
-          // Update USER-LEVEL subscription
-          const { data: clientData } = await supabaseAdmin
-            .from("clients")
-            .select("user_id")
-            .eq("id", failedSub.client_id)
-            .single();
-          if (clientData?.user_id) {
-            await updateUserSubscription(
-              supabaseAdmin,
-              clientData.user_id,
-              "past_due",
-              plan_tier,
-              lemonSubscriptionId,
-              null
-            );
-          }
         }
+
+        // Update status to past_due but don't touch plan_tier
+        if (resolvedUserId) {
+          await updateUserSubscription(
+            supabaseAdmin,
+            resolvedUserId,
+            "past_due",
+            "", // don't overwrite plan_tier
+            lemonSubscriptionId,
+            null
+          );
+        }
+
+        console.log("subscription_payment_failed processed:", { resolvedUserId });
         break;
       }
 
