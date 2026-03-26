@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
             checkout_data: {
               email: user.email || "",
               custom: {
-                client_id: clientId || "",
+                ...(clientId ? { client_id: clientId } : {}),
                 user_id: user.id,
                 plan_id: planId,
               },
