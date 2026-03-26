@@ -101,42 +101,39 @@ export async function POST(req: NextRequest) {
 
     switch (eventName) {
       case "subscription_created": {
-        if (!clientId) {
-          console.error("No client_id in subscription_created custom data");
-          break;
+        // Client-level subscription record (only if clientId exists)
+        if (clientId) {
+          const { error: subError } = await supabaseAdmin
+            .from("subscriptions")
+            .upsert({
+              client_id: clientId,
+              lemon_subscription_id: lemonSubscriptionId,
+              plan_id: planId,
+              status: subscriptionData?.status || "active",
+              current_period_start: subscriptionData?.created_at || null,
+              current_period_end: subscriptionData?.renews_at || null,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: "lemon_subscription_id",
+            });
+
+          if (subError) {
+            console.error("Failed to upsert subscription:", subError);
+          }
+
+          // Update client plan tier and subscription status
+          const status = subscriptionData?.status === "on_trial" ? "active" : (subscriptionData?.status || "active");
+          await supabaseAdmin
+            .from("clients")
+            .update({
+              subscription_status: status,
+              plan_tier,
+              messages_this_month: 0,
+            })
+            .eq("id", clientId);
         }
 
-        // Insert subscription record (client-level)
-        const { error: subError } = await supabaseAdmin
-          .from("subscriptions")
-          .upsert({
-            client_id: clientId,
-            lemon_subscription_id: lemonSubscriptionId,
-            plan_id: planId,
-            status: subscriptionData?.status || "active",
-            current_period_start: subscriptionData?.created_at || null,
-            current_period_end: subscriptionData?.renews_at || null,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: "lemon_subscription_id",
-          });
-
-        if (subError) {
-          console.error("Failed to upsert subscription:", subError);
-        }
-
-        // Update client plan tier and subscription status
-        const status = subscriptionData?.status === "on_trial" ? "active" : (subscriptionData?.status || "active");
-        await supabaseAdmin
-          .from("clients")
-          .update({
-            subscription_status: status,
-            plan_tier,
-            messages_this_month: 0,
-          })
-          .eq("id", clientId);
-
-        // Update USER-LEVEL subscription (survives client deletion)
+        // ALWAYS update USER-LEVEL subscription (this is the source of truth for paywalls)
         if (userId) {
           await updateUserSubscription(
             supabaseAdmin,
@@ -165,6 +162,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        console.log("subscription_created processed:", { userId, clientId, plan_tier, status: subscriptionData?.status });
         break;
       }
 
@@ -173,7 +171,7 @@ export async function POST(req: NextRequest) {
           .from("subscriptions")
           .select("client_id")
           .eq("lemon_subscription_id", lemonSubscriptionId)
-          .single();
+          .maybeSingle();
 
         const lsStatus = subscriptionData?.status;
         let appStatus = "active";
@@ -189,7 +187,7 @@ export async function POST(req: NextRequest) {
           appStatus = "past_due";
         }
 
-        // Update subscription record
+        // Update subscription record if it exists
         await supabaseAdmin
           .from("subscriptions")
           .update({
@@ -199,14 +197,14 @@ export async function POST(req: NextRequest) {
           })
           .eq("lemon_subscription_id", lemonSubscriptionId);
 
-        if (subRecord) {
+        if (subRecord?.client_id) {
           // Update client
           await supabaseAdmin
             .from("clients")
             .update({ subscription_status: appStatus })
             .eq("id", subRecord.client_id);
 
-          // Update USER-LEVEL subscription
+          // Update USER-LEVEL subscription via client
           const { data: clientData } = await supabaseAdmin
             .from("clients")
             .select("user_id")
@@ -215,14 +213,26 @@ export async function POST(req: NextRequest) {
           if (clientData?.user_id) {
             await updateUserSubscription(
               supabaseAdmin,
-              clientData.user_id,
+              userId || clientData.user_id,
               lsStatus || "active",
               plan_tier,
               lemonSubscriptionId,
               subscriptionData?.renews_at || null
             );
           }
+        } else if (userId) {
+          // No client record — update user-level subscription directly
+          await updateUserSubscription(
+            supabaseAdmin,
+            userId,
+            lsStatus || "active",
+            plan_tier,
+            lemonSubscriptionId,
+            subscriptionData?.renews_at || null
+          );
         }
+
+        console.log("subscription_updated processed:", { userId, clientId: subRecord?.client_id, appStatus });
         break;
       }
 
