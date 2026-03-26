@@ -53,14 +53,29 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // If clientId provided, verify ownership. Otherwise, check user-level subscription.
+    // If clientId provided, verify ownership via tenant or direct user_id.
     if (clientId) {
-      const { data: client, error: clientError } = await db
+      // First get user's tenant
+      const { data: membership } = await db
+        .from("tenant_members")
+        .select("tenant_id")
+        .eq("profile_id", user.id)
+        .limit(1)
+        .maybeSingle();
+
+      let clientQuery = db
         .from("clients")
         .select("id, name, subscription_status")
-        .eq("id", clientId)
-        .eq("user_id", user.id)
-        .single();
+        .eq("id", clientId);
+
+      // Check via tenant or direct user_id
+      if (membership?.tenant_id) {
+        clientQuery = clientQuery.eq("tenant_id", membership.tenant_id);
+      } else {
+        clientQuery = clientQuery.eq("user_id", user.id);
+      }
+
+      const { data: client, error: clientError } = await clientQuery.single();
 
       if (clientError || !client) {
         return NextResponse.json(
@@ -83,9 +98,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (!process.env.LEMONSQUEEZY_API_KEY || !process.env.LEMONSQUEEZY_STORE_ID) {
-      console.error("Missing LemonSqueezy API Key or Store ID");
+      console.error("Missing LemonSqueezy API Key or Store ID", {
+        hasApiKey: !!process.env.LEMONSQUEEZY_API_KEY,
+        hasStoreId: !!process.env.LEMONSQUEEZY_STORE_ID,
+      });
       return NextResponse.json(
-        { error: "Payment gateway configuration error" },
+        { error: "Payment gateway not configured. Contact support." },
         { status: 500 }
       );
     }
@@ -144,10 +162,15 @@ export async function POST(req: NextRequest) {
     });
 
     if (!checkoutResponse.ok) {
-      const errorData = await checkoutResponse.json();
-      console.error("LemonSqueezy Checkout Error:", JSON.stringify(errorData));
+      const errorText = await checkoutResponse.text();
+      console.error("LemonSqueezy Checkout Error:", {
+        status: checkoutResponse.status,
+        body: errorText,
+        variantId,
+        storeId: process.env.LEMONSQUEEZY_STORE_ID,
+      });
       return NextResponse.json(
-        { error: "Failed to create checkout session" },
+        { error: `Checkout failed (${checkoutResponse.status}). Please try again or contact support.` },
         { status: 500 }
       );
     }
