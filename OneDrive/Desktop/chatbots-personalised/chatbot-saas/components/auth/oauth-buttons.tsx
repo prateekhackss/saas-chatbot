@@ -48,7 +48,7 @@ export function OAuthButtons() {
     const supabase = createClient();
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=/clients`
+        ? `${window.location.origin}/auth/callback?next=/dashboard`
         : undefined;
 
     await supabase.auth.signInWithOAuth({

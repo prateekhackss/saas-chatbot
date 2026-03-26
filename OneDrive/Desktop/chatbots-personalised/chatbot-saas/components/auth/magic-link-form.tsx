@@ -22,7 +22,7 @@ export function MagicLinkForm() {
     const redirectTo =
       typeof window === "undefined"
         ? undefined
-        : `${configuredAppUrl || window.location.origin}/auth/callback?next=/clients`;
+        : `${configuredAppUrl || window.location.origin}/auth/callback?next=/dashboard`;
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,

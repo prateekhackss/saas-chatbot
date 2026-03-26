@@ -56,7 +56,7 @@ export function ResetPasswordForm() {
 
     setSuccess(true);
     setTimeout(() => {
-      router.replace("/clients");
+      router.push("/dashboard");
       router.refresh();
     }, 2000);
   }

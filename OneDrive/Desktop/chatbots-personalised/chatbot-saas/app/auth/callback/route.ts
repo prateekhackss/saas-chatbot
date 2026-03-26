@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
   const token_hash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type");
   // Validate next parameter to prevent open redirect attacks
-  let next = requestUrl.searchParams.get("next") || "/clients";
+  let next = requestUrl.searchParams.get("next") || "/dashboard";
   if (!next.startsWith("/") || next.startsWith("//") || next.includes("://")) {
-    next = "/clients";
+    next = "/dashboard";
   }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -48,6 +48,19 @@ export async function GET(request: NextRequest) {
       redirectUrl.searchParams.set("authError", "callback_failed");
       redirectUrl.searchParams.set("message", error.message);
       return NextResponse.redirect(redirectUrl);
+    }
+
+    // Check if user has a tenant — if not, redirect to onboarding
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { count } = await (supabase as any)
+        .from("tenant_members")
+        .select("tenant_id", { count: "exact", head: true })
+        .eq("profile_id", user.id);
+
+      if ((count || 0) === 0) {
+        return NextResponse.redirect(new URL("/onboarding", request.url));
+      }
     }
 
     return response;

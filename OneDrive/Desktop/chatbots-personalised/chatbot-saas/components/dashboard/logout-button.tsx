@@ -23,7 +23,7 @@ export function LogoutButton({
     const supabase = createClient();
     await supabase.auth.signOut();
 
-    router.replace("/login");
+    router.push("/login");
     router.refresh();
   }
 

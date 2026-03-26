@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_ROUTES = new Set(["/", "/login", "/signup", "/forgot-password", "/reset-password", "/favicon.ico", "/embed.js", "/checkout", "/privacy", "/terms"]);
 const PUBLIC_PREFIXES = ["/api/chat", "/api/embed", "/api/leads", "/widget", "/auth", "/_next"];
 const PROTECTED_PREFIXES = ["/clients", "/dashboard", "/settings", "/api/admin"];
+// Routes that require auth but NOT a tenant (user is onboarding)
+const AUTH_ONLY_ROUTES = new Set(["/onboarding"]);
 const PUBLIC_FILE = /\.(?:ico|png|jpg|jpeg|gif|svg|css|js|woff|woff2|ttf|eot|map)$/;
 
 function isPublicPath(pathname: string) {
@@ -78,7 +80,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && isProtectedPath(pathname)) {
+  if (!user && (isProtectedPath(pathname) || AUTH_ONLY_ROUTES.has(pathname))) {
     // API routes get 401, pages get redirected to login
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -95,9 +97,41 @@ export async function middleware(request: NextRequest) {
 
   if (user && (pathname === "/login" || pathname === "/signup")) {
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/clients";
+    dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
+  }
+
+  // Tenant check: authenticated users hitting protected pages
+  // must have at least one tenant, otherwise redirect to onboarding.
+  // Skip this check for /onboarding itself, API routes, and admin users.
+  if (user && isProtectedPath(pathname) && !pathname.startsWith("/api/")) {
+    const { count } = await supabase
+      .from("tenant_members")
+      .select("tenant_id", { count: "exact", head: true })
+      .eq("profile_id", user.id);
+
+    if ((count || 0) === 0) {
+      const onboardingUrl = request.nextUrl.clone();
+      onboardingUrl.pathname = "/onboarding";
+      onboardingUrl.search = "";
+      return NextResponse.redirect(onboardingUrl);
+    }
+  }
+
+  // If user is on /onboarding but already has a tenant, send to dashboard
+  if (user && pathname === "/onboarding") {
+    const { count } = await supabase
+      .from("tenant_members")
+      .select("tenant_id", { count: "exact", head: true })
+      .eq("profile_id", user.id);
+
+    if ((count || 0) > 0) {
+      const dashboardUrl = request.nextUrl.clone();
+      dashboardUrl.pathname = "/dashboard";
+      dashboardUrl.search = "";
+      return NextResponse.redirect(dashboardUrl);
+    }
   }
 
   // Subscription check removed from middleware.

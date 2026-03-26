@@ -64,7 +64,7 @@ export function SignupForm() {
     const emailRedirectTo =
       typeof window === "undefined"
         ? undefined
-        : `${configuredAppUrl || window.location.origin}/auth/callback?next=/clients`;
+        : `${configuredAppUrl || window.location.origin}/auth/callback?next=/dashboard`;
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -86,7 +86,8 @@ export function SignupForm() {
     setIsLoading(false);
 
     if (data.session) {
-      router.replace("/clients");
+      // Email confirmation is OFF — user is immediately authenticated
+      router.push("/dashboard");
       router.refresh();
       return;
     }

@@ -97,12 +97,20 @@ export async function POST(req: NextRequest) {
 
     const { name, slug, config } = result.data;
 
-    // 3. Insert into Supabase
-    // We use the server client here because RLS will allow "authenticated" users (Admin) to insert
+    // 3. Get user's tenant
+    const { data: membership } = await db
+      .from('tenant_members')
+      .select('tenant_id')
+      .eq('profile_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    // 4. Insert into Supabase — scoped to tenant
     const { data, error } = await db
       .from('clients')
       .insert({
         user_id: user.id,
+        tenant_id: membership?.tenant_id || null,
         name,
         slug,
         config: config as any, // Cast for TS compilation
@@ -139,11 +147,28 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Fetch all clients
-    const { data, error } = await db
+    // 2. Fetch user's tenant
+    const { data: membership } = await db
+      .from('tenant_members')
+      .select('tenant_id')
+      .eq('profile_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    // 3. Fetch clients scoped to tenant (or user_id fallback)
+    let query = db
       .from('clients')
       .select('id, name, slug, is_active, created_at, embed_token, allowed_origins')
       .order('created_at', { ascending: false });
+
+    if (membership?.tenant_id) {
+      query = query.eq('tenant_id', membership.tenant_id);
+    } else {
+      // Fallback: user has no tenant yet, show only their own clients
+      query = query.eq('user_id', user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Database error:', error);

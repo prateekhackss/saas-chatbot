@@ -21,6 +21,7 @@ type DashboardChromeProps = {
   userEmail: string;
   isAdmin: boolean;
   hasActiveSubscription?: boolean;
+  tenantName?: string;
   children: React.ReactNode;
 };
 
@@ -65,6 +66,7 @@ export function DashboardChrome({
   userEmail,
   isAdmin,
   hasActiveSubscription = false,
+  tenantName,
   children,
 }: DashboardChromeProps) {
   const pathname = usePathname();
@@ -182,6 +184,7 @@ export function DashboardChrome({
             pathname={pathname}
             userEmail={userEmail}
             isAdmin={isAdmin}
+            tenantName={tenantName}
             onNavigate={() => undefined}
           />
         </aside>
@@ -299,6 +302,7 @@ export function DashboardChrome({
               pathname={pathname}
               userEmail={userEmail}
               isAdmin={isAdmin}
+              tenantName={tenantName}
               onNavigate={() => setIsMobileMenuOpen(false)}
             />
           </aside>
@@ -336,11 +340,13 @@ function SidebarContent({
   pathname,
   userEmail,
   isAdmin,
+  tenantName,
   onNavigate,
 }: {
   pathname: string;
   userEmail: string;
   isAdmin: boolean;
+  tenantName?: string;
   onNavigate: () => void;
 }) {
   return (
@@ -357,7 +363,7 @@ function SidebarContent({
               Nexus<span className="text-[#EF4444]">Chat</span>
             </div>
             <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">
-              {isAdmin ? "Admin" : "Operations"} Console
+              {tenantName || (isAdmin ? "Admin" : "Operations") + " Console"}
             </div>
           </div>
         </Link>

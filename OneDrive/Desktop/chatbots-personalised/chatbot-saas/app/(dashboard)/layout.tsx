@@ -2,6 +2,8 @@ import { DashboardChrome } from "@/components/dashboard/dashboard-chrome";
 import { createClient } from "@/lib/supabase/server";
 import { PLAN_LIMITS, PlanTier } from "@/lib/constants/pricing";
 import { redirect } from "next/navigation";
+import { getCurrentTenant } from "@/lib/tenant";
+import { TenantProvider } from "@/lib/tenant-context";
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +20,12 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  // Fetch current tenant — redirect to onboarding if none
+  const tenantData = await getCurrentTenant();
+  if (!tenantData) {
+    redirect("/onboarding");
+  }
+
   // Fetch user role and subscription from profiles
   let isAdmin = false;
   let hasActiveSubscription = false;
@@ -32,14 +40,14 @@ export default async function DashboardLayout({
     profile?.subscription_status || ""
   );
 
-  // Check client usage for warning banner
+  // Check client usage for warning banner — scoped to current tenant
   let warningMessage = null;
   let clientWithHighUsage = null;
 
   const { data: clients } = await db
     .from("clients")
     .select("id, plan_tier, messages_this_month, name, subscription_status")
-    .eq("user_id", user.id)
+    .eq("tenant_id", tenantData.tenant.id)
     .eq("is_active", true);
 
   if (clients && clients.length > 0) {
@@ -56,10 +64,12 @@ export default async function DashboardLayout({
   }
 
   return (
+    <TenantProvider tenant={tenantData.tenant} role={tenantData.role}>
     <DashboardChrome
       userEmail={user?.email || "Signed in"}
       isAdmin={isAdmin}
       hasActiveSubscription={hasActiveSubscription}
+      tenantName={tenantData.tenant.name}
     >
       <div className="flex-1 w-full max-w-7xl mx-auto">
         {/* Usage warning banner */}
@@ -97,5 +107,6 @@ export default async function DashboardLayout({
         {children}
       </div>
     </DashboardChrome>
+    </TenantProvider>
   );
 }

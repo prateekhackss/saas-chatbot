@@ -58,7 +58,7 @@ export function LoginForm({ signupState, signupEmail }: LoginFormProps) {
       return;
     }
 
-    router.replace("/clients");
+    router.push("/dashboard");
     router.refresh();
   }
 
