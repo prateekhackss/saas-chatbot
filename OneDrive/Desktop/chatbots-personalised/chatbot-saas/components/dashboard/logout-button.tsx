@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Loader2, LogOut } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 type LogoutButtonProps = {
   compact?: boolean;
@@ -18,12 +17,12 @@ export function LogoutButton({
   async function handleLogout() {
     setIsLoading(true);
 
-    const supabase = createClient();
-    await supabase.auth.signOut();
-
-    // Hard navigation ensures cookies are fully cleared before the server
-    // processes the next request (router.push can race with cookie cleanup)
-    window.location.href = "/login";
+    // Submit to server-side signout route which properly clears httpOnly cookies
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/api/auth/signout";
+    document.body.appendChild(form);
+    form.submit();
   }
 
   return (
