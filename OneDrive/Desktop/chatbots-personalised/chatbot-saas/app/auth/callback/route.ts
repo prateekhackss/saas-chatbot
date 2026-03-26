@@ -59,7 +59,18 @@ export async function GET(request: NextRequest) {
         .eq("profile_id", user.id);
 
       if ((count || 0) === 0) {
-        return NextResponse.redirect(new URL("/onboarding", request.url));
+        // Build a NEW redirect but copy session cookies from the original response
+        const onboardingResponse = NextResponse.redirect(new URL("/onboarding", request.url));
+        response.cookies.getAll().forEach((cookie) => {
+          onboardingResponse.cookies.set(cookie.name, cookie.value, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 365, // 1 year
+          });
+        });
+        return onboardingResponse;
       }
     }
 
