@@ -277,27 +277,15 @@ export function DashboardChrome({
             aria-label="Close navigation menu"
           />
           <aside className="relative flex h-full w-[86vw] max-w-[320px] flex-col bg-[#0A0A0A] text-neutral-100 shadow-2xl">
-            <div className="flex items-center justify-between px-4 py-4">
-              <div className="flex items-center gap-3">
-                <Logo size="sm" variant="icon" />
-                <div>
-                  <div className="text-sm font-archivo tracking-tight text-white">
-                    Nexus<span className="text-[#EF4444]">Chat</span>
-                  </div>
-                  <div className="text-[10px] font-sora font-light uppercase tracking-widest text-[#a3a3a3]">
-                    Admin workspace
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-stone-800 bg-stone-900 text-stone-300"
-                aria-label="Close navigation menu"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            {/* Close button floated top-right */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute right-3 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-stone-800 bg-stone-900 text-stone-300"
+              aria-label="Close navigation menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
             <SidebarContent
               pathname={pathname}
               userEmail={userEmail}
