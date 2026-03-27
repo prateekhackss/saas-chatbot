@@ -52,7 +52,7 @@ export default async function DashboardLayout({
 
   if (clients && clients.length > 0) {
     for (const client of clients) {
-      const tier = (client.plan_tier || profile?.plan_tier || "starter") as PlanTier;
+      const tier = (profile?.plan_tier || client.plan_tier || "starter") as PlanTier;
       const limit = PLAN_LIMITS[tier].maxMessages;
       const used = client.messages_this_month || 0;
       if (used >= limit * 0.8) {

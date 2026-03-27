@@ -11,6 +11,9 @@ export default async function ClientDetailPage({
   const supabase = await createClient();
   const db = supabase as any;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { data: client, error } = await db
     .from("clients")
     .select("*")
@@ -20,6 +23,13 @@ export default async function ClientDetailPage({
   if (error || !client) {
     redirect("/clients");
   }
+
+  // Fetch user profile plan_tier (source of truth)
+  const { data: profile } = await db
+    .from("profiles")
+    .select("plan_tier")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const { count: docCount } = await db
     .from("documents")
@@ -33,9 +43,15 @@ export default async function ClientDetailPage({
 
   const hostUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+  // Override client plan_tier with profile (source of truth)
+  const clientWithPlan = {
+    ...client,
+    plan_tier: profile?.plan_tier || client.plan_tier || "starter",
+  };
+
   return (
     <ClientDetailPanel
-      client={client}
+      client={clientWithPlan}
       docCount={docCount || 0}
       convoCount={convoCount || 0}
       hostUrl={hostUrl}
